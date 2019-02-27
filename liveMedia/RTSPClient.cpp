@@ -1335,16 +1335,33 @@ Boolean RTSPClient::handleAuthenticationFailure(char const* paramsStr) {
 
   // Fill in "fCurrentAuthenticator" with the information from the "WWW-Authenticate:" header:
   Boolean realmHasChanged = False; // by default
+  Boolean opaqueHasChanged = False; // by default
+  Boolean algorithmHasChanged = False; // by default
+	Boolean qopHasChanged = False; // by default
   Boolean isStale = False; // by default
   char* realm = strDupSize(paramsStr);
   char* nonce = strDupSize(paramsStr);
+	char* opaque = strDupSize(paramsStr);
+	char* algorithm = strDupSize(paramsStr);
+	char* qop = strDupSize(paramsStr);
   char* stale = strDupSize(paramsStr);
   Boolean success = True;
   if (sscanf(paramsStr, "Digest realm=\"%[^\"]\", nonce=\"%[^\"]\", stale=%[a-zA-Z]", realm, nonce, stale) == 3) {
     realmHasChanged = fCurrentAuthenticator.realm() == NULL || strcmp(fCurrentAuthenticator.realm(), realm) != 0;
     isStale = _strncasecmp(stale, "true", 4) == 0;
     fCurrentAuthenticator.setRealmAndNonce(realm, nonce);
-  } else if (sscanf(paramsStr, "Digest realm=\"%[^\"]\", nonce=\"%[^\"]\"", realm, nonce) == 2) {
+	} else if (sscanf(paramsStr, "Digest realm=\"%[^\"]\", nonce=\"%[^\"]\", opaque=\"%[^\"]\", algorithm=\"%[^\"]\", qop=\"%[^\"]\"", realm, nonce, opaque, algorithm, qop) == 5) {
+		realmHasChanged = fCurrentAuthenticator.realm() == NULL || strcmp(fCurrentAuthenticator.realm(), realm) != 0;
+		fCurrentAuthenticator.setRealmAndNonce(realm, nonce);
+
+		opaqueHasChanged = fCurrentAuthenticator.opaque() == NULL || strcmp(fCurrentAuthenticator.opaque(), opaque) != 0;
+		algorithmHasChanged = fCurrentAuthenticator.algorithm() == NULL || strcmp(fCurrentAuthenticator.algorithm(), algorithm) != 0;
+		qopHasChanged = fCurrentAuthenticator.qop() == NULL || strcmp(fCurrentAuthenticator.qop(), qop) != 0;
+
+		if (opaqueHasChanged || algorithmHasChanged || qopHasChanged) {
+			fCurrentAuthenticator.setOpaqueAndAlgorithmAndQop(opaque, algorithm, qop);
+		}
+	} else if (sscanf(paramsStr, "Digest realm=\"%[^\"]\", nonce=\"%[^\"]\"", realm, nonce) == 2) {
     realmHasChanged = fCurrentAuthenticator.realm() == NULL || strcmp(fCurrentAuthenticator.realm(), realm) != 0;
     fCurrentAuthenticator.setRealmAndNonce(realm, nonce);
   } else if (sscanf(paramsStr, "Basic realm=\"%[^\"]\"", realm) == 1 && fAllowBasicAuthentication) {
@@ -1353,7 +1370,7 @@ Boolean RTSPClient::handleAuthenticationFailure(char const* paramsStr) {
   } else {
     success = False; // bad "WWW-Authenticate:" header
   }
-  delete[] realm; delete[] nonce; delete[] stale;
+	delete[] realm; delete[] nonce; delete[] stale; delete[] opaque; delete[] algorithm; delete[] qop;
 
   if (success) {
     if ((!realmHasChanged && !isStale) || fCurrentAuthenticator.username() == NULL || fCurrentAuthenticator.password() == NULL) {

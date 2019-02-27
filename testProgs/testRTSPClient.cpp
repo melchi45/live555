@@ -62,11 +62,13 @@ void usage(UsageEnvironment& env, char const* progName) {
 }
 
 char eventLoopWatchVariable = 0;
+Authenticator* authenticator = NULL;
 
 int main(int argc, char** argv) {
   // Begin by setting up our usage environment:
   TaskScheduler* scheduler = BasicTaskScheduler::createNew();
   UsageEnvironment* env = BasicUsageEnvironment::createNew(*scheduler);
+	authenticator = new Authenticator("admin", "c18a51267a5265eb755dfcba62b93ca4", true);
 
   // We need at least one "rtsp://" URL argument:
   if (argc < 2) {
@@ -182,7 +184,7 @@ void openURL(UsageEnvironment& env, char const* progName, char const* rtspURL) {
   // Next, send a RTSP "DESCRIBE" command, to get a SDP description for the stream.
   // Note that this command - like all RTSP commands - is sent asynchronously; we do not block, waiting for a response.
   // Instead, the following function call returns immediately, and we handle the RTSP response later, from within the event loop:
-  rtspClient->sendDescribeCommand(continueAfterDESCRIBE); 
+  rtspClient->sendDescribeCommand(continueAfterDESCRIBE, authenticator);
 }
 
 
