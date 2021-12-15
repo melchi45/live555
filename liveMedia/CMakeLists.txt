@@ -161,6 +161,7 @@ set(headers
     include/liveMedia.hh
     include/liveMedia_version.hh
     include/ourMD5.hh
+    include/SHA256.hh
     include/uLawAudioFilter.hh
 )
 add_library(liveMedia ${live555_library_type}
@@ -361,6 +362,7 @@ add_library(liveMedia ${live555_library_type}
     WAVAudioFileServerMediaSubsession.cpp
     WAVAudioFileSource.cpp
     ourMD5.cpp
+    SHA256.cpp
     rtcp_from_spec.c
     rtcp_from_spec.h
     uLawAudioFilter.cpp

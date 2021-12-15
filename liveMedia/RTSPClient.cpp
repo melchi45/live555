@@ -954,18 +954,35 @@ char* RTSPClient::createAuthenticatorString(char const* cmd, char const* url) {
     // We have a filled-in authenticator, so use it:
     char* authenticatorStr;
     if (auth.nonce() != NULL) { // Digest authentication
-      char const* const authFmt =
-	"Authorization: Digest username=\"%s\", realm=\"%s\", "
-	"nonce=\"%s\", uri=\"%s\", response=\"%s\"\r\n";
-      char const* response = auth.computeDigestResponse(cmd, url);
-      unsigned authBufSize = strlen(authFmt)
-	+ strlen(auth.username()) + strlen(auth.realm())
-	+ strlen(auth.nonce()) + strlen(url) + strlen(response);
-      authenticatorStr = new char[authBufSize];
-      sprintf(authenticatorStr, authFmt,
-	      auth.username(), auth.realm(),
-	      auth.nonce(), url, response);
-      auth.reclaimDigestResponse(response);
+      if (auth.algorithm() != NULL && auth.qop() != NULL) {
+        char const* const authFmt = "Authorization: Digest username=\"%s\", realm=\"%s\", "
+          "nonce=\"%s\", opaque=\"%s\", cnonce=\"%s\", uri=\"%s\", nc=\"%s\", "
+          "response=\"%s\", algorithm=\"%s\", qop=\"%s\"\r\n";
+        size_t authFmtSize = strlen(authFmt);
+        char const* response = auth.computeDigestResponse(cmd, url);
+        unsigned authBufSize = authFmtSize + strlen(auth.username()) + strlen(auth.realm())
+          + strlen(auth.nonce()) + strlen(auth.opaque()) + strlen(auth.cnonce()) + strlen(url) + strlen(auth.nc())
+          + strlen(response) + strlen(auth.algorithm() + strlen(auth.qop()));
+        authenticatorStr = new char[authBufSize];
+        sprintf(authenticatorStr, authFmt, auth.username(), auth.realm(),
+          auth.nonce(), auth.opaque(), auth.cnonce(), url, auth.nc(),
+          response, auth.algorithm(), auth.qop());
+        auth.reclaimDigestResponse(response);
+      }
+      else {
+        char const* const authFmt =
+          "Authorization: Digest username=\"%s\", realm=\"%s\", "
+          "nonce=\"%s\", uri=\"%s\", response=\"%s\"\r\n";
+        char const* response = auth.computeDigestResponse(cmd, url);
+        unsigned authBufSize = strlen(authFmt)
+          + strlen(auth.username()) + strlen(auth.realm())
+          + strlen(auth.nonce()) + strlen(url) + strlen(response);
+        authenticatorStr = new char[authBufSize];
+        sprintf(authenticatorStr, authFmt,
+          auth.username(), auth.realm(),
+          auth.nonce(), url, response);
+        auth.reclaimDigestResponse(response);
+      }
     } else { // Basic authentication
       char const* const authFmt = "Authorization: Basic %s\r\n";
 
@@ -1404,12 +1421,28 @@ Boolean RTSPClient::handleAuthenticationFailure(char const* paramsStr) {
 
   // Fill in "fCurrentAuthenticator" with the information from the "WWW-Authenticate:" header:
   Boolean realmHasChanged = False; // by default
+  Boolean opaqueHasChanged = False; // by default
+  Boolean algorithmHasChanged = False; // by default
+  Boolean qopHasChanged = False; // by default
   Boolean isStale = False; // by default
   char* realm = strDupSize(paramsStr);
   char* nonce = strDupSize(paramsStr);
+  char* opaque = strDupSize(paramsStr);
+  char* algorithm = strDupSize(paramsStr);
+  char* qop = strDupSize(paramsStr);
   char* stale = strDupSize(paramsStr);
   Boolean success = True;
-  if (sscanf(paramsStr, "Digest realm=\"%[^\"]\", nonce=\"%[^\"]\", stale=%[a-zA-Z]", realm, nonce, stale) == 3) {
+  if (sscanf(paramsStr, "Digest realm=\"%[^\"]\", nonce=\"%[^\"]\", opaque=\"%[^\"]\", algorithm=\"%[^\"]\", qop=\"%[^\"]\"", realm, nonce, opaque, algorithm, qop) == 5) {
+    realmHasChanged = fCurrentAuthenticator.realm() == NULL || strcmp(fCurrentAuthenticator.realm(), realm) != 0;
+    fCurrentAuthenticator.setRealmAndNonce(realm, nonce);
+    opaqueHasChanged = fCurrentAuthenticator.opaque() == NULL || strcmp(fCurrentAuthenticator.opaque(), opaque) != 0;
+    algorithmHasChanged = fCurrentAuthenticator.algorithm() == NULL || strcmp(fCurrentAuthenticator.algorithm(), algorithm) != 0;
+    qopHasChanged = fCurrentAuthenticator.qop() == NULL || strcmp(fCurrentAuthenticator.qop(), qop) != 0;
+
+    if (opaqueHasChanged || algorithmHasChanged || qopHasChanged) {
+      fCurrentAuthenticator.setOpaqueAndAlgorithmAndQop(opaque, algorithm, qop);
+    }
+  } else if (sscanf(paramsStr, "Digest realm=\"%[^\"]\", nonce=\"%[^\"]\", stale=%[a-zA-Z]", realm, nonce, stale) == 3) {
     realmHasChanged = fCurrentAuthenticator.realm() == NULL || strcmp(fCurrentAuthenticator.realm(), realm) != 0;
     isStale = _strncasecmp(stale, "true", 4) == 0;
     fCurrentAuthenticator.setRealmAndNonce(realm, nonce);
@@ -1731,7 +1764,7 @@ void RTSPClient::handleResponseBytes(int newBytesRead) {
     char const* speedParamsStr = NULL;
     char const* rangeParamsStr = NULL;
     char const* rtpInfoParamsStr = NULL;
-    char const* wwwAuthenticateParamsStr = NULL;
+    char const* wwwAuthenticateParamsStr[2] = {NULL, NULL}; //
     char const* publicParamsStr = NULL;
     char* bodyStart = NULL;
     unsigned numBodyBytes = 0;
@@ -1821,9 +1854,15 @@ void RTSPClient::handleResponseBytes(int newBytesRead) {
 	} else if (checkForHeader(lineStart, "WWW-Authenticate:", 17, headerParamsStr)) {
 	  // If we've already seen a "WWW-Authenticate:" header, then we replace it with this new one only if
 	  // the new one specifies "Digest" authentication:
-	  if (wwwAuthenticateParamsStr == NULL || _strncasecmp(headerParamsStr, "Digest", 6) == 0) {
-	    wwwAuthenticateParamsStr = headerParamsStr;
-	  }
+    if (strstr(headerParamsStr, "algorithm") && strstr(headerParamsStr, "SHA-256")) {
+      if (wwwAuthenticateParamsStr[1] == NULL || _strncasecmp(headerParamsStr, "Digest", 6) == 0) {
+        wwwAuthenticateParamsStr[1] = headerParamsStr;
+      }
+    } else {
+      if (wwwAuthenticateParamsStr[0] == NULL || _strncasecmp(headerParamsStr, "Digest", 6) == 0) {
+        wwwAuthenticateParamsStr[0] = headerParamsStr;
+      }
+    }
 	} else if (checkForHeader(lineStart, "Public:", 7, publicParamsStr)) {
 	} else if (checkForHeader(lineStart, "Allow:", 6, publicParamsStr)) {
 	  // Note: we accept "Allow:" instead of "Public:", so that "OPTIONS" requests made to HTTP servers will work.
@@ -1908,7 +1947,9 @@ void RTSPClient::handleResponseBytes(int newBytesRead) {
 	  } else if (strcmp(foundRequest->commandName(), "GET_PARAMETER") == 0) {
 	    if (!handleGET_PARAMETERResponse(foundRequest->contentStr(), bodyStart, responseEnd)) break;
 	  }
-	} else if (responseCode == 401 && handleAuthenticationFailure(wwwAuthenticateParamsStr)) {
+	} else if (responseCode == 401 && (wwwAuthenticateParamsStr[1] != NULL ?
+      handleAuthenticationFailure(wwwAuthenticateParamsStr[1]) :
+      handleAuthenticationFailure(wwwAuthenticateParamsStr[0]))) {
 	  // We need to resend the command, with an "Authorization:" header:
 	  needToResendCommand = True;
 	  

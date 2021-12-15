@@ -48,11 +48,19 @@ public:
   void setUsernameAndPassword(char const* username, char const* password, Boolean passwordIsMD5 = False);
       // If "passwordIsMD5" is True, then "password" is actually the value computed
       // by md5(<username>:<realm>:<actual-password>)
+  void setOpaqueAndAlgorithmAndQop(char const* opaque, char const* algorithm, char const* qop);
+	void setHashType(int hashType);
 
   char const* realm() const { return fRealm; }
   char const* nonce() const { return fNonce; }
   char const* username() const { return fUsername; }
   char const* password() const { return fPassword; }
+  char const* opaque() const { return fOpaque; }
+  char const* algorithm() const { return fAlgorithm; }
+  char const* qop() const { return fQop; }
+  char const* nc() const { return fNonceCount; }
+  char const* cnonce() const { return fCnonce; }
+	int const typeOfHash() const { return fHashType; }
 
   char const* computeDigestResponse(char const* cmd, char const* url) const;
       // The returned string from this function must later be freed by calling:
@@ -61,15 +69,25 @@ public:
 private:
   void resetRealmAndNonce();
   void resetUsernameAndPassword();
+  void resetOpaqueAndAlgorithmAndQop();
+  void resetCnonceAndNonceCount();
+	void resetHashType();
   void assignRealmAndNonce(char const* realm, char const* nonce);
   void assignUsernameAndPassword(char const* username, char const* password, Boolean passwordIsMD5);
+  void assignOpaqueAndAlgorithmAndQop(char const* opaque, char const* algorithm, char const* qop);
+  void assignCnonceAndNonceCount(char const* cnonce, char const* nc);
+	void assignHashType(int passwordType);
   void assign(char const* realm, char const* nonce,
 	      char const* username, char const* password, Boolean passwordIsMD5);
+  void assign(char const* realm, char const* nonce,
+              char const* username, char const* password, char const* opaque, char const* algorithm,
+              char const* qop, char const* cnonce, char const* nc, Boolean passwordIsMD5, int passwordType);
 
 private:
   char* fRealm; char* fNonce;
   char* fUsername; char* fPassword;
-  Boolean fPasswordIsMD5;
+  char* fOpaque; char* fAlgorithm; char* fQop; char* fCnonce; char* fNonceCount;
+  Boolean fPasswordIsMD5; int fHashType;
 };
 
 #endif
