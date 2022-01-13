@@ -110,6 +110,8 @@ If you need to change options in other ways, you can set them manually as follow
 # make; make install
 ```
 
+If you see the [required is at least "1.1.1"] on vcpkg, you have to change the version to 1.0.0 on CMakeFiles.
+
 *****
 ## For Linux
 ```shell
