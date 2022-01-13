@@ -9,7 +9,7 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${command:cmake.launchTargetPath}",
-      "args": [],
+      "args": ["rtsp://admin:5tkatjd!!@192.168.38.162/0/H.264/media.smp"],
       "stopAtEntry": false,
       "cwd": "${fileDirname}",
       "environment": [
@@ -40,7 +40,7 @@
           "MIMode": "gdb",
           "miDebuggerPath": "C:\\MinGw\\bin\\gdb.exe"
       },
-      "externalConsole": false,
+      "externalConsole": false, 
       "MIMode": "gdb",
       "miDebuggerPath": "/usr/bin/gdb",
       "setupCommands": [
