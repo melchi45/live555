@@ -62,9 +62,30 @@ And you have to choose the architect option for win32 or win64  with -A option i
 * cmake -G "Visual Studio 17 2022" -A ARM
 * cmake -G "Visual Studio 17 2022" -A ARM64
 
+### openssl on Windows environment
+
+#### use the OpenSSL-Win32 or OpenSSL-Win64 binary 
+Reference: https://slproweb.com/products/Win32OpenSSL.html
+
 If you should be OpenSSL-Win32 or OpenSSL-Win64 binary package. you have to change the lib files names on Preferences menu from Visual Studio IDE.
-* libssl32MD(d).lib or libcrypto32MD(d).lib 
-* libssl64MD(d).lib or libcrypto64MD(d).lib 
+* libssl32MD(d).lib or libcrypto32MD(d).lib (-A Win32 option selected) 
+* libssl64MD(d).lib or libcrypto64MD(d).lib (-A Win64 option selected) 
+
+If you want automatically check the openssl on cmake. add OPENSSL path to system environment variables.
+
+#### use the openssl on vcpkg
+If you want automatically check the openssl on cmake. add OPENSSL path to system environment variables.
+or you can use the CMAKE_PREFIX_PATH option in cmake configuration command. But, you have to check the openssl version, it needs over the version 1.1.1.
+
+```cmd
+# cmake -B x64 -G "Visual Studio 17 2022" -A x64 \
+  -DCMAKE_VERBOSE_MAKEFILE=ON \
+  -DLIVE555_ENABLE_OPENSSL=ON \
+  -DCMAKE_TOOLCHAIN_FILE="[path to vcpkg]/scripts/buildsystems/vcpkg.cmake" \ # vcpkg cmake files location
+  -DCMAKE_PREFIX_PATH="[path to vcpkg]/installed/x64-windows-static" \ # vcpkg prefix path
+  -DVCPKG_TARGET_TRIPLET=x64-windows-static \
+  -DCMAKE_CL_64=1
+```
 
 *****
 build live555 library and executable file.
