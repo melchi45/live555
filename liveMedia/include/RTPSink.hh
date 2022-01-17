@@ -28,6 +28,10 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include "RTPInterface.hh"
 #endif
 
+#ifndef _MIKEY_HH
+#include "MIKEY.hh"
+#endif
+
 class RTPTransmissionStatsDB; // forward
 
 class LIVEMEDIA_API RTPSink: public MediaSink {
@@ -50,6 +54,7 @@ public:
 
   virtual char const* sdpMediaType() const; // for use in SDP m= lines
   virtual char* rtpmapLine() const; // returns a string to be delete[]d
+  virtual char* keyMgmtLine(Boolean streamingIsEncrypted); // returns a string to be delete[]d
   virtual char const* auxSDPLine();
       // optional SDP line (e.g. a=fmtp:...)
 
@@ -113,6 +118,7 @@ protected:
   struct timeval fTotalOctetCountStartTime, fInitialPresentationTime, fMostRecentPresentationTime;
   u_int32_t fCurrentTimestamp;
   u_int16_t fSeqNo;
+  MIKEYState* fMIKEYState; // used if we are streaming SRTP
 
 private:
   // redefined virtual functions:

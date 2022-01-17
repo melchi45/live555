@@ -1021,8 +1021,9 @@ char* RTSPClient::createKeyMgmtString(char const* url, MediaSubsession const& su
   } else {
     char const* keyMgmtFmt = "KeyMgmt: prot=mikey; uri=\"%s\"; data=\"%s\"\r\n";
     char* base64EncodedData = base64Encode((char*)mikeyMessage, mikeyMessageSize);
-    unsigned keyMgmtSize = strlen(keyMgmtFmt)
-      + strlen(url) + strlen(base64EncodedData);
+    delete[] mikeyMessage;
+    
+    unsigned keyMgmtSize = strlen(keyMgmtFmt) + strlen(url) + strlen(base64EncodedData);
     keyMgmtStr = new char[keyMgmtSize];
     sprintf(keyMgmtStr, keyMgmtFmt,
 	    url, base64EncodedData);
