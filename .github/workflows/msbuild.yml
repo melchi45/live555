@@ -216,7 +216,7 @@ jobs:
       - name: create-archive
         id: create_archive
         run: 
-          powershell Compress-7Zip ${{github.workspace}}/windows -ArchiveFileName "$ARCHIVE_NAME"_win64.zip -Format Zip
+          powershell Compress-7Zip ${{env.OUT_PATH}} -ArchiveFileName "$ARCHIVE_NAME"_win64.zip -Format Zip
 #           zip -r "$ARCHIVE_NAME"_win64.zip ${{github.workspace}}/windows
 
 #       - name: create-checksum
