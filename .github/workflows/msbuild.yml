@@ -171,6 +171,14 @@ jobs:
     runs-on: windows-latest
 
     steps:
+      - name: Install 7Zip PowerShell Module
+        shell: powershell
+        run: Install-Module 7Zip4PowerShell -Force -Verbose
+        
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+        
       - uses: actions/checkout@v2
         id: checkout
         with:
@@ -204,7 +212,9 @@ jobs:
 
       - name: create-archive
         id: create_archive
-        run: zip -r "$ARCHIVE_NAME"_win64.zip ${{github.workspace}}/windows
+        run: 
+          powershell Compress-7Zip ${{github.workspace}}/windows -ArchiveFileName "$ARCHIVE_NAME"_win64.zip -Format Zip
+#           zip -r "$ARCHIVE_NAME"_win64.zip ${{github.workspace}}/windows
 
       - name: create-checksum
         id: create-checksum
@@ -218,8 +228,8 @@ jobs:
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token, https://github.com/settings/tokens
         with:
-            tag_name: ${{ github.ref }}
-            release_name: Release ${{ github.ref }}
+            tag_name: ${{ github.ref }}_${{ steps.date.outputs.date }}
+            release_name: Release ${{ github.ref }} ${{ steps.date.outputs.date }}
             draft: false
             prerelease: false
 
