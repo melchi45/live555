@@ -1,4 +1,4 @@
-name: MS Build
+name: CMake
 
 on:
   push:
