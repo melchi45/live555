@@ -1,6 +1,7 @@
 ## Live555
 
- [![codecov](https://codecov.io/gh/melchi45/live555/branch/master/graph/badge.svg?token=C0AIRJXUGI)](https://codecov.io/gh/melchi45/live555) [![Latest release](https://img.shields.io/github/v/release/melchi45/live555)](https://github.com/melchi45/live555/releases/latest) [![CMake](https://github.com/melchi45/live555/actions/workflows/release.yml/badge.svg)](https://github.com/melchi45/live555/actions/workflows/release.yml)
+ [![codecov](https://codecov.io/gh/melchi45/live555/branch/master/graph/badge.svg?token=C0AIRJXUGI)](https://codecov.io/gh/melchi45/live555) [![Latest release](https://img.shields.io/github/v/release/melchi45/live555)](https://github.com/melchi45/live555/releases/latest) [![Test](https://github.com/melchi45/live555/actions/workflows/test.yml/badge.svg)](https://github.com/melchi45/live555/actions/workflows/test.yml) [![CMake](https://github.com/melchi45/live555/actions/workflows/release.yml/badge.svg)](https://github.com/melchi45/live555/actions/workflows/release.yml)
+
 
 You can check new version from Live555.
 
