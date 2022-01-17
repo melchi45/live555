@@ -173,7 +173,7 @@ jobs:
     steps:
       - name: Install 7Zip PowerShell Module
         shell: powershell
-        run: Install-Module 7Zip4PowerShell -Force -Verbose
+        run: Install-Module 7Zip4PowerShell -Force
         
       - name: Get current date
         id: date
@@ -216,7 +216,7 @@ jobs:
       - name: create-archive
         id: create_archive
         run: 
-          powershell Compress-Archive ${{env.OUT_PATH}} "$ARCHIVE_NAME"_win64.zip
+          powershell Compress-7Zip ${{env.OUT_PATH}} -ArchiveFileName "$ARCHIVE_NAME"_win64.zip -Format Zip
           #powershell Compress-7Zip ${{env.OUT_PATH}} -ArchiveFileName "$ARCHIVE_NAME"_win64.zip -Format Zip
 #           zip -r "$ARCHIVE_NAME"_win64.zip ${{github.workspace}}/windows
 
