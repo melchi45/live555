@@ -8,8 +8,9 @@
       "name": "(gdb) 시작",
       "type": "cppdbg",
       "request": "launch",
+      // "program": "enter program name, for example ${workspaceFolder}/build/transportStream/transportStream",
       "program": "${command:cmake.launchTargetPath}",
-      "args": ["rtsp://admin:5tkatjd!!@192.168.38.162/0/H.264/media.smp"],
+      "args": ["-i", "rtsp://192.168.38.31/0/profile2/media.smp", "-u", "admin", "5tkatjd!"],
       "stopAtEntry": false,
       "cwd": "${fileDirname}",
       "environment": [

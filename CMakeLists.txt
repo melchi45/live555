@@ -163,6 +163,7 @@ if(LIVE555_BUILD_EXAMPLES)
     add_subdirectory(testProgs)
     add_subdirectory(proxyServer)
     add_subdirectory(mediaServer)
+    add_subdirectory(transportStream)
     add_subdirectory(hlsProxy)
 endif()
 
@@ -186,6 +187,8 @@ if ( BUILD_SHARED_LIBS )
          PROPERTY COMPILE_DEFINITIONS "BUILD_SHARED_LIBS=1")
       set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/mediaServer" APPEND
          PROPERTY COMPILE_DEFINITIONS "BUILD_SHARED_LIBS=1")
+      set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/transportStream" APPEND
+         PROPERTY COMPILE_DEFINITIONS "BUILD_SHARED_LIBS=1")
       set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/hlsProxy" APPEND
          PROPERTY COMPILE_DEFINITIONS "BUILD_SHARED_LIBS=1")
    endif()
@@ -208,6 +211,8 @@ else ()
       set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/proxyServer" APPEND
          PROPERTY COMPILE_DEFINITIONS "BUILD_SHARED_LIBS=0")
       set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/mediaServer" APPEND
+         PROPERTY COMPILE_DEFINITIONS "BUILD_SHARED_LIBS=0")
+      set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/transportStream" APPEND
          PROPERTY COMPILE_DEFINITIONS "BUILD_SHARED_LIBS=0")
       set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/hlsProxy" APPEND
          PROPERTY COMPILE_DEFINITIONS "BUILD_SHARED_LIBS=0")
