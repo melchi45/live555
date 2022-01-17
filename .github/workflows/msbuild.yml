@@ -193,12 +193,44 @@ jobs:
       - name: Configure CMake
         # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
         # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-        run: cmake -B ${{github.workspace}}/windows -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{env.OUT_PATH}} -DLIVE555_ENABLE_OPENSSL=ON -DLIVE555_BUILD_EXAMPLES=ON -DCMAKE_TOOLCHAIN_FILE="./vcpkg/scripts/buildsystems/vcpkg.cmake" -DCMAKE_PREFIX_PATH="./vcpkg/installed/x64-windows-static" -DVCPKG_TARGET_TRIPLET=x64-windows-static
+        run: cmake -B ${{github.workspace}}/windows -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{env.OUT_PATH}} -DLIVE555_ENABLE_OPENSSL=OFF -DLIVE555_BUILD_EXAMPLES=ON -DCMAKE_TOOLCHAIN_FILE="./vcpkg/scripts/buildsystems/vcpkg.cmake" -DCMAKE_PREFIX_PATH="./vcpkg/installed/x64-windows-static" -DVCPKG_TARGET_TRIPLET=x64-windows-static
         
       - name: Build
         # Build your program with the given configuration
         run: 
           cmake --build ${{github.workspace}}/windows --config ${{env.BUILD_TYPE}} --target ${{env.OUT_PATH}}
+
+      - name: create-archive
+        id: create_archive
+        run: zip -r "$ARCHIVE_NAME"_win64.zip ${{github.workspace}}/windows
+
+      - name: create-checksum
+        id: create-checksum
+        run: |
+          sha256sum "$ARCHIVE_NAME"_win64.zip > checksum_shared.txt
+          echo "::set-output name=checksum::$(cut -d ' ' -f 1 checksum_win64.txt)"
+          
+      - name: create-release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token, https://github.com/settings/tokens
+        with:
+            tag_name: ${{ github.ref }}
+            release_name: Release ${{ github.ref }}
+            draft: false
+            prerelease: false
+
+      - name: upload-archive-shared
+        id: upload-release-asset_shared
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token, https://github.com/settings/tokens
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ env.ARCHIVE_NAME }}_win64.zip
+          asset_name: ${{ env.ARCHIVE_NAME }}_win64.zip
+          asset_content_type: application/gzip
 
 #       - name: Package
 #         run: .\package.ps1
