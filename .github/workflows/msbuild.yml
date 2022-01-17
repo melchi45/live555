@@ -219,11 +219,11 @@ jobs:
           powershell Compress-7Zip ${{github.workspace}}/windows -ArchiveFileName "$ARCHIVE_NAME"_win64.zip -Format Zip
 #           zip -r "$ARCHIVE_NAME"_win64.zip ${{github.workspace}}/windows
 
-      - name: create-checksum
-        id: create-checksum
-        run: |
-          sha256sum "$ARCHIVE_NAME"_win64.zip > checksum_shared.txt
-          echo "::set-output name=checksum::$(cut -d ' ' -f 1 checksum_win64.txt)"
+#       - name: create-checksum
+#         id: create-checksum
+#         run: |
+#           sha256sum "$ARCHIVE_NAME"_win64.zip > checksum_shared.txt
+#           echo "::set-output name=checksum::$(cut -d ' ' -f 1 checksum_win64.txt)"
           
       - name: create-release
         id: create_release
