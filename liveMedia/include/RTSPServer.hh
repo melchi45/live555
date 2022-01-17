@@ -28,7 +28,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include "DigestAuthentication.hh"
 #endif
 
-class LIVEMEDIA_API RTSPServer: public GenericMediaServer {
+class RTSPServer: public GenericMediaServer {
 public:
   static RTSPServer* createNew(UsageEnvironment& env, Port ourPort = 554,
 			       UserAuthenticationDatabase* authDatabase = NULL,
@@ -240,7 +240,7 @@ public: // should be protected, but some old compilers complain otherwise
   };
 
   // The state of an individual client session (using one or more sequential TCP connections) handled by a RTSP server:
-  class LIVEMEDIA_API RTSPClientSession: public GenericMediaServer::ClientSession {
+  class RTSPClientSession: public GenericMediaServer::ClientSession {
   protected:
     RTSPClientSession(RTSPServer& ourServer, u_int32_t sessionId);
     virtual ~RTSPClientSession();
@@ -338,7 +338,7 @@ private:
 
 ////////// A subclass of "RTSPServer" that implements the "REGISTER" command to set up proxying on the specified URL //////////
 
-class LIVEMEDIA_API RTSPServerWithREGISTERProxying: public RTSPServer {
+class RTSPServerWithREGISTERProxying: public RTSPServer {
 public:
   static RTSPServerWithREGISTERProxying* createNew(UsageEnvironment& env, Port ourPort = 554,
 						   UserAuthenticationDatabase* authDatabase = NULL,
@@ -380,7 +380,7 @@ private:
 
 // A special version of "parseTransportHeader()", used just for parsing the "Transport:" header
 // in an incoming "REGISTER" command:
-LIVEMEDIA_API void parseTransportHeaderForREGISTER(char const* buf, // in
+void parseTransportHeaderForREGISTER(char const* buf, // in
 				     Boolean &reuseConnection, // out
 				     Boolean& deliverViaTCP, // out
 				     char*& proxyURLSuffix); // out
