@@ -429,6 +429,7 @@ void OnDemandServerMediaSubsession
 
   AddressString ipAddressStr(addressForSDP);
   char* rtpmapLine = rtpSink->rtpmapLine();
+  char* keyMgmtLine = rtpSink->keyMgmtLine(fParentSession->streamingIsEncrypted);
   char const* rtcpmuxLine = fMultiplexRTCPWithRTP ? "a=rtcp-mux\r\n" : "";
   char const* rangeLine = rangeSDPLine();
   char const* auxSDPLine = getAuxSDPLine(rtpSink, inputSource);
@@ -442,12 +443,14 @@ void OnDemandServerMediaSubsession
     "%s"
     "%s"
     "%s"
+    "%s"
     "a=control:%s\r\n";
   unsigned sdpFmtSize = strlen(sdpFmt)
     + strlen(mediaType) + 5 /* max short len */ + 1 + 3 /* max char len */
     + 3/*IP4 or IP6*/ + strlen(ipAddressStr.val())
     + 20 /* max int len */
     + strlen(rtpmapLine)
+    + strlen(keyMgmtLine)
     + strlen(rtcpmuxLine)
     + strlen(rangeLine)
     + strlen(auxSDPLine)
@@ -461,11 +464,12 @@ void OnDemandServerMediaSubsession
 	  addressForSDP.ss_family == AF_INET ? "IP4" : "IP6", ipAddressStr.val(), // c= address
 	  estBitrate, // b=AS:<bandwidth>
 	  rtpmapLine, // a=rtpmap:... (if present)
+	  keyMgmtLine, // a=key-mgmt:... (if present)
 	  rtcpmuxLine, // a=rtcp-mux:... (if present)
 	  rangeLine, // a=range:... (if present)
 	  auxSDPLine, // optional extra SDP line
 	  trackId()); // a=control:<track-id>
-  delete[] (char*)rangeLine; delete[] rtpmapLine;
+  delete[] (char*)rangeLine; delete[] keyMgmtLine; delete[] rtpmapLine;
 
   delete[] fSDPLines; fSDPLines = strDup(sdpLines);
   delete[] sdpLines;

@@ -81,6 +81,7 @@ PassiveServerMediaSubsession::sdpLines(int /*addressFamily*/) {
     unsigned estBitrate
       = fRTCPInstance == NULL ? 50 : fRTCPInstance->totSessionBW();
     char* rtpmapLine = fRTPSink.rtpmapLine();
+    char* keyMgmtLine = fRTPSink.keyMgmtLine(fParentSession->streamingIsEncrypted);
     char const* rtcpmuxLine = rtcpIsMuxed() ? "a=rtcp-mux\r\n" : "";
     char const* rangeLine = rangeSDPLine();
     char const* auxSDPLine = fRTPSink.auxSDPLine();
@@ -94,12 +95,14 @@ PassiveServerMediaSubsession::sdpLines(int /*addressFamily*/) {
       "%s"
       "%s"
       "%s"
+      "%s"
       "a=control:%s\r\n";
     unsigned sdpFmtSize = strlen(sdpFmt)
       + strlen(mediaType) + 5 /* max short len */ + 1 + 3 /* max char len */
       + 3/*IP4 or IP6*/ + strlen(groupAddressStr.val()) + 3 /* max char len */
       + 20 /* max int len */
       + strlen(rtpmapLine)
+      + strlen(keyMgmtLine)
       + strlen(rtcpmuxLine)
       + strlen(rangeLine)
       + strlen(auxSDPLine)
@@ -115,11 +118,12 @@ PassiveServerMediaSubsession::sdpLines(int /*addressFamily*/) {
 	    ttl, // c= TTL
 	    estBitrate, // b=AS:<bandwidth>
 	    rtpmapLine, // a=rtpmap:... (if present)
+	    keyMgmtLine, // a=key-mgmt:... (if present)
 	    rtcpmuxLine, // a=rtcp-mux:... (if present)
 	    rangeLine, // a=range:... (if present)
 	    auxSDPLine, // optional extra SDP line
 	    trackId()); // a=control:<track-id>
-    delete[] (char*)rangeLine; delete[] rtpmapLine;
+    delete[] (char*)rangeLine; delete[] keyMgmtLine; delete[] rtpmapLine;
 
     fSDPLines = strDup(sdpLines);
     delete[] sdpLines;
