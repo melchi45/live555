@@ -1,4 +1,4 @@
-name: Release
+name: MS Build
 
 on:
   push:
