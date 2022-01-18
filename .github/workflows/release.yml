@@ -61,7 +61,7 @@ jobs:
       run: |
         echo $RELEASE_VERSION
         echo ${{ steps.vars.outputs.tag }}
-
+        
     - name: Configure CMake Static Library
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
@@ -233,8 +233,8 @@ jobs:
         env:
           RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
         run: |
-          echo $RELEASE_VERSION
-          echo ${{ steps.vars.outputs.tag }}
+          echo "$RELEASE_VERSION"
+          echo "${{ steps.vars.outputs.tag }}"
 
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v1
