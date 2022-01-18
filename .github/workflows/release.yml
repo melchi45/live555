@@ -16,6 +16,7 @@ env:
   OUT_PATH: install
   CHECKOUT_REF: 'v103.0.0'
   ARCHIVE_NAME: ${{ github.event.repository.name }}-${{ github.event.repository.tag_name }}
+#https://www.sysnet.pe.kr/2/0/12542
 jobs:
   create_release:
     name: Create release
@@ -41,8 +42,12 @@ jobs:
     # well on Windows or Mac.  You can convert this to a matrix build if you need
     # cross-platform coverage.
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    name: Ubuntu Static Build
+    needs: create_release
+    strategy:
+      matrix:
+        kind: [x86, x64]
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v2
       id: checkout
@@ -118,8 +123,12 @@ jobs:
     # well on Windows or Mac.  You can convert this to a matrix build if you need
     # cross-platform coverage.
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    name: Ubuntu Shared Build
+    needs: create_release
+    strategy:
+      matrix:
+        kind: [x86, x64]
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v2
       id: checkout
@@ -191,8 +200,12 @@ jobs:
         asset_content_type: text/plain
         
   build_windows:
+    name: Windows Static Build
+    needs: create_release
+    strategy:
+      matrix:
+        kind: [x86, x64]
     runs-on: windows-latest
-
     steps:
       - name: Install 7Zip PowerShell Module
         shell: powershell
