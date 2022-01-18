@@ -180,12 +180,14 @@ jobs:
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
         
       - uses: actions/checkout@v2
+        id: checkout
         with:
-          fetch-depth: 0 # Doesn't help
-      - name: "Extract data from tag: version, message, body"
-        id: tag
-        run: |
-          git checkout `git describe --tags --abbrev=0 origin/master`
+          # The branch, tag or SHA to checkout. When checking out the repository that
+          # triggered a workflow, this defaults to the reference or SHA for that event.
+          # Otherwise, uses the default branch.
+          ref: echo "GIT_TAG=`echo $(git describe --tags --abbrev=0)`"
+        
+#         run: echo "GIT_TAG=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
 #          git fetch --tags --force # Retrieve annotated tags. THIS TRICK REALLY HELPS
 #          echo ::set-output name=subject::$(git for-each-ref $GITHUB_REF --format='%(contents:subject)')
 #          # …
