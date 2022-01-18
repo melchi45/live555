@@ -179,7 +179,7 @@ jobs:
 #         id: date
 #         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
         
-      - uses: actions/checkout@latest
+      - uses: actions/checkout@v2
         id: checkout
 #         run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
         with:
