@@ -183,72 +183,72 @@ jobs:
 #       id: checkout
       - name: Set output
         id: vars
-        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+        run:  powershell echo ::set-output name=tag::${GITHUB_REF#refs/*/}
       - name: Check output
         env:
           RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
         run: |
-          echo $RELEASE_VERSION
-          echo ${{ steps.vars.outputs.tag }}
+          powershell echo $RELEASE_VERSION
+          powershell echo ${{ steps.vars.outputs.tag }}
 
-      - name: Add MSBuild to PATH
-        uses: microsoft/setup-msbuild@v1
+#       - name: Add MSBuild to PATH
+#         uses: microsoft/setup-msbuild@v1
 
-      - name: Installing vcpkg
-        run: |
-          git clone --depth 1 https://github.com/Microsoft/vcpkg.git
-          cd vcpkg
-          .\bootstrap-vcpkg.bat
-          .\vcpkg.exe integrate install
-          .\vcpkg.exe install openssl:x64-windows
-          set OPENSSL_ROOT_DIR="./installed/x64-windows"
+#       - name: Installing vcpkg
+#         run: |
+#           git clone --depth 1 https://github.com/Microsoft/vcpkg.git
+#           cd vcpkg
+#           .\bootstrap-vcpkg.bat
+#           .\vcpkg.exe integrate install
+#           .\vcpkg.exe install openssl:x64-windows
+#           set OPENSSL_ROOT_DIR="./installed/x64-windows"
 
-      - name: Configure CMake
-        # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-        # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-        #-DCMAKE_TOOLCHAIN_FILE=D:/a/live555/live555/vcpkg/scripts/buildsystems/vcpkg.cmake
-        #-DOPENSSL_ROOT_DIR="D:/vcpkg/installed/x64-windows" 
-        run: 
-          #cmake -B ${{github.workspace}}/windows -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{env.OUT_PATH}} -DLIVE555_ENABLE_OPENSSL=OFF -DLIVE555_BUILD_EXAMPLES=OFF -DCMAKE_TOOLCHAIN_FILE="./vcpkg/scripts/buildsystems/vcpkg.cmake"          
-          #cmake -B ${{github.workspace}}/windows -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{env.OUT_PATH}} -DLIVE555_ENABLE_OPENSSL=ON -DLIVE555_BUILD_EXAMPLES=ON -DCMAKE_TOOLCHAIN_FILE="./vcpkg/scripts/buildsystems/vcpkg.cmake" -DCMAKE_PREFIX_PATH="./vcpkg/installed/x64-windows" -DOPENSSL_ROOT_DIR="./vcpkg/installed/x64-windows" -DVCPKG_TARGET_TRIPLET=x64-windows-static
-          cmake -B ${{github.workspace}}/windows -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{env.OUT_PATH}} -DLIVE555_ENABLE_OPENSSL=OFF -DLIVE555_BUILD_EXAMPLES=OFF -DCMAKE_TOOLCHAIN_FILE="./vcpkg/scripts/buildsystems/vcpkg.cmake"
+#       - name: Configure CMake
+#         # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+#         # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+#         #-DCMAKE_TOOLCHAIN_FILE=D:/a/live555/live555/vcpkg/scripts/buildsystems/vcpkg.cmake
+#         #-DOPENSSL_ROOT_DIR="D:/vcpkg/installed/x64-windows" 
+#         run: 
+#           #cmake -B ${{github.workspace}}/windows -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{env.OUT_PATH}} -DLIVE555_ENABLE_OPENSSL=OFF -DLIVE555_BUILD_EXAMPLES=OFF -DCMAKE_TOOLCHAIN_FILE="./vcpkg/scripts/buildsystems/vcpkg.cmake"          
+#           #cmake -B ${{github.workspace}}/windows -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{env.OUT_PATH}} -DLIVE555_ENABLE_OPENSSL=ON -DLIVE555_BUILD_EXAMPLES=ON -DCMAKE_TOOLCHAIN_FILE="./vcpkg/scripts/buildsystems/vcpkg.cmake" -DCMAKE_PREFIX_PATH="./vcpkg/installed/x64-windows" -DOPENSSL_ROOT_DIR="./vcpkg/installed/x64-windows" -DVCPKG_TARGET_TRIPLET=x64-windows-static
+#           cmake -B ${{github.workspace}}/windows -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{env.OUT_PATH}} -DLIVE555_ENABLE_OPENSSL=OFF -DLIVE555_BUILD_EXAMPLES=OFF -DCMAKE_TOOLCHAIN_FILE="./vcpkg/scripts/buildsystems/vcpkg.cmake"
         
-      - name: Build
-        # Build your program with the given configuration
-        run: 
-          cmake --build ${{github.workspace}}/windows --config ${{env.BUILD_TYPE}} --target ${{env.OUT_PATH}} -j20
+#       - name: Build
+#         # Build your program with the given configuration
+#         run: 
+#           cmake --build ${{github.workspace}}/windows --config ${{env.BUILD_TYPE}} --target ${{env.OUT_PATH}} -j20
 
-      - name: create-archive
-        id: create_archive
-        run: 
-          powershell Compress-7Zip ${{env.OUT_PATH}} -ArchiveFileName ${{env.ARCHIVE_NAME}}_win64.zip -Format Zip
+#       - name: create-archive
+#         id: create_archive
+#         run: 
+#           powershell Compress-7Zip ${{env.OUT_PATH}} -ArchiveFileName ${{env.ARCHIVE_NAME}}_win64.zip -Format Zip
 #       - name: create-checksum
 #         id: create-checksum
 #         run: |
 #           sha256sum "$ARCHIVE_NAME"_win64.zip > checksum_shared.txt
 #           echo "::set-output name=checksum::$(cut -d ' ' -f 1 checksum_win64.txt)"
           
-      - name: create-release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token, https://github.com/settings/tokens
-        with:
-            tag_name: ${{ github.ref }}_${{ steps.date.outputs.date }}
-            release_name: Release ${{ github.ref }} ${{ steps.date.outputs.date }}
-            draft: false
-            prerelease: false
+#       - name: create-release
+#         id: create_release
+#         uses: actions/create-release@v1
+#         env:
+#             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token, https://github.com/settings/tokens
+#         with:
+#             tag_name: ${{ github.ref }}_${{ steps.date.outputs.date }}
+#             release_name: Release ${{ github.ref }} ${{ steps.date.outputs.date }}
+#             draft: false
+#             prerelease: false
 
-      - name: upload-archive-shared
-        id: upload-release-asset_shared
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token, https://github.com/settings/tokens
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ env.ARCHIVE_NAME }}_win64.zip
-          asset_name: ${{ env.ARCHIVE_NAME }}_win64.zip
-          asset_content_type: application/gzip
+#       - name: upload-archive-shared
+#         id: upload-release-asset_shared
+#         uses: actions/upload-release-asset@v1
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token, https://github.com/settings/tokens
+#         with:
+#           upload_url: ${{ steps.create_release.outputs.upload_url }}
+#           asset_path: ${{ env.ARCHIVE_NAME }}_win64.zip
+#           asset_name: ${{ env.ARCHIVE_NAME }}_win64.zip
+#           asset_content_type: application/gzip
 
 #       - name: Package
 #         run: .\package.ps1
