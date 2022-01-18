@@ -14,8 +14,8 @@ env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
   OUT_PATH: install
-  CHECKOUT_REF: 'v103.0.0'
-  ARCHIVE_NAME: ${{ github.event.repository.name }}-${{ github.event.repository.tag_name }}
+  CHECKOUT_REF: 'v103.0.12'
+  ARCHIVE_NAME: ${{ github.event.repository.name }}-${{env.CHECKOUT_REF}}
 #https://www.sysnet.pe.kr/2/0/12542
 jobs:
   create_release:
