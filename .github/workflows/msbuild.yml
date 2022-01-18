@@ -217,7 +217,7 @@ jobs:
       - name: create-archive
         id: create_archive
         run: 
-          powershell Compress-7Zip ${{env.OUT_PATH}} -ArchiveFileName "$ARCHIVE_NAME"_win64.zip -Format Zip
+          powershell Compress-7Zip ${{env.OUT_PATH}} -ArchiveFileName ${{env.ARCHIVE_NAME}}_win64.zip -Format Zip
           #powershell Compress-7Zip ${{env.OUT_PATH}} -ArchiveFileName "$ARCHIVE_NAME"_win64.zip -Format Zip
 #           zip -r "$ARCHIVE_NAME"_win64.zip ${{github.workspace}}/windows
 
