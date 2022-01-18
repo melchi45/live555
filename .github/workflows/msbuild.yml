@@ -182,7 +182,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Get Branch
         id: branch
-        run: echo "$(git describe --tags --abbrev=0)" >> $GITHUB_BRANCH
+        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
 
       - name: Check Branch
         run: echo "${{ env.branch }}"
