@@ -185,8 +185,9 @@ jobs:
       - name: "Extract data from tag: version, message, body"
         id: tag
         run: |
-          git fetch --tags --force # Retrieve annotated tags. THIS TRICK REALLY HELPS
-          echo ::set-output name=subject::$(git for-each-ref $GITHUB_REF --format='%(contents:subject)')
+          git checkout `git describe --tags --abbrev=0 origin/master`
+#          git fetch --tags --force # Retrieve annotated tags. THIS TRICK REALLY HELPS
+#          echo ::set-output name=subject::$(git for-each-ref $GITHUB_REF --format='%(contents:subject)')
 #          # …
 #       - name: Add MSBuild to PATH
 #         uses: microsoft/setup-msbuild@v1
