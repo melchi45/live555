@@ -187,7 +187,7 @@ jobs:
           # triggered a workflow, this defaults to the reference or SHA for that event.
           # Otherwise, uses the default branch.
           ref: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
-        
+#        
 #         run: echo "GIT_TAG=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
 #          git fetch --tags --force # Retrieve annotated tags. THIS TRICK REALLY HELPS
 #          echo ::set-output name=subject::$(git for-each-ref $GITHUB_REF --format='%(contents:subject)')
