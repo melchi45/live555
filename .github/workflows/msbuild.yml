@@ -180,12 +180,17 @@ jobs:
 #         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
         
       - uses: actions/checkout@v2
-      - name: Get Branch
-        id: branch
+#       id: checkout
+      - name: Set output
+        id: vars
         run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+      - name: Check output
+        env:
+          RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
+        run: |
+          echo "$RELEASE_VERSION"
+          echo "${{ steps.vars.outputs.tag }}"
 
-      - name: Check Branch
-        run: echo "${{ env.branch }}"
 #        
 #         run: echo "GIT_TAG=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
 #          git fetch --tags --force # Retrieve annotated tags. THIS TRICK REALLY HELPS
