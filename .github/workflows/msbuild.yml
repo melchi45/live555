@@ -180,12 +180,16 @@ jobs:
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
         
       - uses: actions/checkout@v2
-        id: checkout
-        with:
-          # The branch, tag or SHA to checkout. When checking out the repository that
-          # triggered a workflow, this defaults to the reference or SHA for that event.
-          # Otherwise, uses the default branch.
-          ref: ${{env.CHECKOUT_REF}}
+#       id: checkout
+      - name: Set output
+        id: vars
+        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+      - name: Check output
+        env:
+          RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
+        run: |
+          echo $RELEASE_VERSION
+          echo ${{ steps.vars.outputs.tag }}
 
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v1
