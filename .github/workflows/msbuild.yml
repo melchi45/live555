@@ -171,26 +171,23 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Install 7Zip PowerShell Module
-        shell: powershell
-        run: Install-Module 7Zip4PowerShell -Force
+#       - name: Install 7Zip PowerShell Module
+#         shell: powershell
+#         run: Install-Module 7Zip4PowerShell -Force
         
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
         
       - uses: actions/checkout@v2
-#       id: checkout
-      - name: Set output
-        id: vars
-        run:  echo ::set-output name=tag::${GITHUB_REF#refs/*/}
-      - name: Check output
-        env:
-          RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
-        run: 
-          #echo $RELEASE_VERSION
-          echo ${{ steps.vars.outputs.tag }}
-
+        with:
+          fetch-depth: 0 # Doesn't help
+      - name: "Extract data from tag: version, message, body"
+        id: tag
+        run: |
+          git fetch --tags --force # Retrieve annotated tags. THIS TRICK REALLY HELPS
+          echo ::set-output name=subject::$(git for-each-ref $GITHUB_REF --format='%(contents:subject)')
+#          # …
 #       - name: Add MSBuild to PATH
 #         uses: microsoft/setup-msbuild@v1
 
