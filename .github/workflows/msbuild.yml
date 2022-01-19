@@ -13,12 +13,58 @@ env:
   CHECKOUT_REF: 'v103.0.0'
   ARCHIVE_NAME: ${{ github.event.repository.name }}-${{ github.event.repository.tag_name }}
 jobs:
+#   # Run the job only when we want the given arch on the given OS
+#   if: contains(matrix.os.archs, matrix.arch)
+#   wheels:
+#     # Note references to within matrix.os' data structure
+#     name: >
+#       Build ${{ matrix.os.name }} ${{ matrix.py }} ${{ matrix.arch }}
+#       wheels
+#     runs-on: ${{ matrix.os.version }}
+#     strategy:
+#       matrix:
+#         # We are limited to a matrix with 256 elements.
+#         # More than that and you can fall back to generating sparse
+#         # matrix elements with "include:", using cog.
+#         os:
+#           - ubuntu:
+#               # the key of the mapping does not seem to be made available
+#               # by the github API, so provide a value with the os name
+#               name: ubuntu
+#               version: ubuntu-latest
+#               archs:
+#                 - x86_64
+#                 - i686
+#                 - aarch64
+#           - windows:
+#               name: windows
+#               version: windows-latest
+#               archs:
+#                 - x86
+#                 - amd64
+#           - macos:
+#               name: macos
+#               version: macos-latest
+#               archs:
+#                 - x86_64
+#         py:
+#           - cp36
+#           - cp37
+#           - cp38
+#           - cp39
+#           - cp310
+#         arch:
+#           - x86_64
+#           - i686
+#           - aarch64
+#           - x86
+#     fail-fast: false
   build_windows_x86:
     name: Windows Build X86
     runs-on: windows-latest
-#     strategy:
-#       matrix:
-#         kind: [x86, x64]
+    strategy:
+      matrix:
+        kind: [x86]
     steps:
 #       - name: Install 7Zip PowerShell Module
 #         shell: powershell
@@ -130,9 +176,9 @@ jobs:
   build_windows_x64:
     name: Windows Build X64
     runs-on: windows-latest
-#     strategy:
-#       matrix:
-#         kind: [x86, x64]
+    strategy:
+      matrix:
+        kind: [x64]
     steps:
 #       - name: Install 7Zip PowerShell Module
 #         shell: powershell
