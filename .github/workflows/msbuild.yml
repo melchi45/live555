@@ -99,7 +99,7 @@ jobs:
         git clone --depth 1 https://github.com/Microsoft/vcpkg.git
         cd vcpkg
         .\bootstrap-vcpkg.bat
-        .\vcpkg.exe integrate install
+        .\vcpkg.exe --triplet x86-windows-static integrate install
         .\vcpkg.exe install openssl:x86-windows-static
         set OPENSSL_ROOT_DIR="./installed/x86-windows-static"
 
@@ -120,9 +120,9 @@ jobs:
       #-DCMAKE_TOOLCHAIN_FILE=D:/a/live555/live555/vcpkg/scripts/buildsystems/vcpkg.cmake
       #-DOPENSSL_ROOT_DIR="D:/vcpkg/installed/x64-windows" 
       run: 
-        #cmake -B ${{github.workspace}}/windows -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{env.OUT_PATH}} -DLIVE555_ENABLE_OPENSSL=OFF -DLIVE555_BUILD_EXAMPLES=OFF -DCMAKE_TOOLCHAIN_FILE="./vcpkg/scripts/buildsystems/vcpkg.cmake"          
-        cmake -B ${{github.workspace}}/windows -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{env.OUT_PATH}} -DLIVE555_ENABLE_OPENSSL=ON -DLIVE555_BUILD_EXAMPLES=OFF -DCMAKE_TOOLCHAIN_FILE="./vcpkg/scripts/buildsystems/vcpkg.cmake" -DCMAKE_PREFIX_PATH="./vcpkg/installed/x86-windows-static" -DOPENSSL_ROOT_DIR="./vcpkg/installed/x86-windows-static" -DVCPKG_TARGET_TRIPLET=x86-windows-static
-#         cmake -B ${{github.workspace}}/windows -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{env.OUT_PATH}} -DLIVE555_ENABLE_OPENSSL=OFF -DLIVE555_BUILD_EXAMPLES=OFF -DCMAKE_TOOLCHAIN_FILE="./vcpkg/scripts/buildsystems/vcpkg.cmake"
+        #cmake -B ${{github.workspace}}/windows -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_INSTALL_PREFIX=${{env.OUT_PATH}} -DLIVE555_ENABLE_OPENSSL=OFF -DLIVE555_BUILD_EXAMPLES=OFF -DCMAKE_TOOLCHAIN_FILE="./vcpkg/scripts/buildsystems/vcpkg.cmake"          
+        cmake -B ${{github.workspace}}/windows -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_INSTALL_PREFIX=${{env.OUT_PATH}} -DLIVE555_ENABLE_OPENSSL=ON -DLIVE555_BUILD_EXAMPLES=OFF -DCMAKE_TOOLCHAIN_FILE="./vcpkg/scripts/buildsystems/vcpkg.cmake" -DCMAKE_PREFIX_PATH="./vcpkg/installed/x86-windows-static" -DOPENSSL_ROOT_DIR="./vcpkg/installed/x86-windows-static" -DVCPKG_TARGET_TRIPLET=x86-windows-static
+#         cmake -B ${{github.workspace}}/windows -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_INSTALL_PREFIX=${{env.OUT_PATH}} -DLIVE555_ENABLE_OPENSSL=OFF -DLIVE555_BUILD_EXAMPLES=OFF -DCMAKE_TOOLCHAIN_FILE="./vcpkg/scripts/buildsystems/vcpkg.cmake"
         
     - name: Build
       # Build your program with the given configuration
@@ -234,9 +234,9 @@ jobs:
       #-DCMAKE_TOOLCHAIN_FILE=D:/a/live555/live555/vcpkg/scripts/buildsystems/vcpkg.cmake
       #-DOPENSSL_ROOT_DIR="D:/vcpkg/installed/x64-windows" 
       run: 
-        #cmake -B ${{github.workspace}}/windows -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{env.OUT_PATH}} -DLIVE555_ENABLE_OPENSSL=OFF -DLIVE555_BUILD_EXAMPLES=OFF -DCMAKE_TOOLCHAIN_FILE="./vcpkg/scripts/buildsystems/vcpkg.cmake"          
-        cmake -B ${{github.workspace}}/windows -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{env.OUT_PATH}} -DLIVE555_ENABLE_OPENSSL=ON -DLIVE555_BUILD_EXAMPLES=OFF -DCMAKE_TOOLCHAIN_FILE="./vcpkg/scripts/buildsystems/vcpkg.cmake" -DCMAKE_PREFIX_PATH="./vcpkg/installed/x64-windows-static" -DOPENSSL_ROOT_DIR="./vcpkg/installed/x64-windows-static" -DVCPKG_TARGET_TRIPLET=x64-windows-static
-#         cmake -B ${{github.workspace}}/windows -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{env.OUT_PATH}} -DLIVE555_ENABLE_OPENSSL=OFF -DLIVE555_BUILD_EXAMPLES=OFF -DCMAKE_TOOLCHAIN_FILE="./vcpkg/scripts/buildsystems/vcpkg.cmake"
+        #cmake -B ${{github.workspace}}/windows -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_INSTALL_PREFIX=${{env.OUT_PATH}} -DLIVE555_ENABLE_OPENSSL=OFF -DLIVE555_BUILD_EXAMPLES=OFF -DCMAKE_TOOLCHAIN_FILE="./vcpkg/scripts/buildsystems/vcpkg.cmake"          
+        cmake -B ${{github.workspace}}/windows -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_INSTALL_PREFIX=${{env.OUT_PATH}} -DLIVE555_ENABLE_OPENSSL=ON -DLIVE555_BUILD_EXAMPLES=OFF -DCMAKE_TOOLCHAIN_FILE="./vcpkg/scripts/buildsystems/vcpkg.cmake" -DCMAKE_PREFIX_PATH="./vcpkg/installed/x64-windows-static" -DOPENSSL_ROOT_DIR="./vcpkg/installed/x64-windows-static" -DVCPKG_TARGET_TRIPLET=x64-windows-static
+#         cmake -B ${{github.workspace}}/windows -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_INSTALL_PREFIX=${{env.OUT_PATH}} -DLIVE555_ENABLE_OPENSSL=OFF -DLIVE555_BUILD_EXAMPLES=OFF -DCMAKE_TOOLCHAIN_FILE="./vcpkg/scripts/buildsystems/vcpkg.cmake"
         
     - name: Build
       # Build your program with the given configuration
