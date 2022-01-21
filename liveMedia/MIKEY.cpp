@@ -67,10 +67,10 @@ enum MIKEYPayloadType {
 		       HDR = 255
 };
 
-MIKEYState::MIKEYState()
+MIKEYState::MIKEYState(Boolean useEncryption)
   : // Set default encryption/authentication parameters:
-  fEncryptSRTP(True),
-  fEncryptSRTCP(True),
+  fEncryptSRTP(useEncryption),
+  fEncryptSRTCP(useEncryption),
   fMKI(our_random32()),
   fUseAuthentication(True),
 
@@ -106,7 +106,7 @@ MIKEYState::~MIKEYState() {
   delete fHeaderPayload; // which will delete all the other payloads as well
 }
 
-MIKEYState* MIKEYState::createNew(u_int8_t* messageToParse, unsigned messageSize) {
+MIKEYState* MIKEYState::createNew(u_int8_t const* messageToParse, unsigned messageSize) {
   Boolean parsedOK;
   MIKEYState* newMIKEYState = new MIKEYState(messageToParse, messageSize, parsedOK);
 
@@ -115,7 +115,6 @@ MIKEYState* MIKEYState::createNew(u_int8_t* messageToParse, unsigned messageSize
     newMIKEYState = NULL;
   }
 
-  delete[] messageToParse;
   return newMIKEYState;
 }
 

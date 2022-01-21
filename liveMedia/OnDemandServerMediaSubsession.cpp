@@ -28,7 +28,8 @@ OnDemandServerMediaSubsession
 				portNumBits initialPortNum,
 				Boolean multiplexRTCPWithRTP)
   : ServerMediaSubsession(env),
-    fSDPLines(NULL), fReuseFirstSource(reuseFirstSource),
+    fSDPLines(NULL), fMIKEYStateMessage(NULL), fMIKEYStateMessageSize(0),
+    fReuseFirstSource(reuseFirstSource),
     fMultiplexRTCPWithRTP(multiplexRTCPWithRTP), fLastStreamToken(NULL),
     fAppHandlerTask(NULL), fAppHandlerClientData(NULL) {
   fDestinationsHashTable = HashTable::create(ONE_WORD_HASH_KEYS);
@@ -43,6 +44,7 @@ OnDemandServerMediaSubsession
 }
 
 OnDemandServerMediaSubsession::~OnDemandServerMediaSubsession() {
+  delete[] fMIKEYStateMessage;
   delete[] fSDPLines;
 
   // Clean out the destinations hash table:
@@ -69,10 +71,16 @@ OnDemandServerMediaSubsession::sdpLines(int addressFamily) {
     Groupsock* dummyGroupsock = createGroupsock(nullAddress(addressFamily), 0);
     unsigned char rtpPayloadType = 96 + trackNumber()-1; // if dynamic
     RTPSink* dummyRTPSink = createNewRTPSink(dummyGroupsock, rtpPayloadType, inputSource);
-    if (dummyRTPSink != NULL && dummyRTPSink->estimatedBitrate() > 0) estBitrate = dummyRTPSink->estimatedBitrate();
+    if (dummyRTPSink != NULL) {
+      if (fParentSession->streamingUsesSRTP) {
+	fMIKEYStateMessage = dummyRTPSink->setupForSRTP(fParentSession->streamingIsEncrypted,
+							fMIKEYStateMessageSize);
+      }
 
-    setSDPLinesFromRTPSink(dummyRTPSink, inputSource, estBitrate);
-    Medium::close(dummyRTPSink);
+      if (dummyRTPSink->estimatedBitrate() > 0) estBitrate = dummyRTPSink->estimatedBitrate();
+      setSDPLinesFromRTPSink(dummyRTPSink, inputSource, estBitrate);
+      Medium::close(dummyRTPSink);
+    }
     delete dummyGroupsock;
     closeStreamSource(inputSource);
   }
@@ -167,7 +175,12 @@ void OnDemandServerMediaSubsession
 	unsigned char rtpPayloadType = 96 + trackNumber()-1; // if dynamic
 	rtpSink = mediaSource == NULL ? NULL
 	  : createNewRTPSink(rtpGroupsock, rtpPayloadType, mediaSource);
-	if (rtpSink != NULL && rtpSink->estimatedBitrate() > 0) streamBitrate = rtpSink->estimatedBitrate();
+	if (rtpSink != NULL) {
+	  if (fParentSession->streamingUsesSRTP) {
+	    rtpSink->setupForSRTP(fMIKEYStateMessage, fMIKEYStateMessageSize);
+	  }
+	  if (rtpSink->estimatedBitrate() > 0) streamBitrate = rtpSink->estimatedBitrate();
+	}
       }
 
       // Turn off the destinations for each groupsock.  They'll get set later
@@ -420,8 +433,6 @@ void OnDemandServerMediaSubsession
 
 void OnDemandServerMediaSubsession
 ::setSDPLinesFromRTPSink(RTPSink* rtpSink, FramedSource* inputSource, unsigned estBitrate) {
-  if (rtpSink == NULL) return;
-
   char const* mediaType = rtpSink->sdpMediaType();
   unsigned char rtpPayloadType = rtpSink->rtpPayloadType();
   struct sockaddr_storage const& addressForSDP = rtpSink->groupsockBeingUsed().groupAddress();
@@ -429,7 +440,7 @@ void OnDemandServerMediaSubsession
 
   AddressString ipAddressStr(addressForSDP);
   char* rtpmapLine = rtpSink->rtpmapLine();
-  char* keyMgmtLine = rtpSink->keyMgmtLine(fParentSession->streamingIsEncrypted);
+  char* keyMgmtLine = rtpSink->keyMgmtLine();
   char const* rtcpmuxLine = fMultiplexRTCPWithRTP ? "a=rtcp-mux\r\n" : "";
   char const* rangeLine = rangeSDPLine();
   char const* auxSDPLine = getAuxSDPLine(rtpSink, inputSource);
@@ -459,7 +470,7 @@ void OnDemandServerMediaSubsession
   sprintf(sdpLines, sdpFmt,
 	  mediaType, // m= <media>
 	  portNumForSDP, // m= <port>
-	  fParentSession->streamingIsEncrypted ? "S" : "",
+	  fParentSession->streamingUsesSRTP ? "S" : "",
 	  rtpPayloadType, // m= <fmt list>
 	  addressForSDP.ss_family == AF_INET ? "IP4" : "IP6", ipAddressStr.val(), // c= address
 	  estBitrate, // b=AS:<bandwidth>
@@ -519,7 +530,7 @@ void StreamState
     // Create (and start) a 'RTCP instance' for this RTP sink:
     fRTCPInstance = fMaster.createRTCP(fRTCPgs, fTotalBW, (unsigned char*)fMaster.fCNAME, fRTPSink);
         // Note: This starts RTCP running automatically
-    fRTCPInstance->setAppHandler(fMaster.fAppHandlerTask, fMaster.fAppHandlerClientData);
+    if (fRTCPInstance != NULL) fRTCPInstance->setAppHandler(fMaster.fAppHandlerTask, fMaster.fAppHandlerClientData);
   }
 
   if (dests->isTCP) {

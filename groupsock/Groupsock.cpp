@@ -225,7 +225,7 @@ void Groupsock::addDestination(struct sockaddr_storage const& addr, Port const& 
   for (destRecord* dest = fDests; dest != NULL; dest = dest->fNext) {
     if (dest->fSessionId == sessionId &&
 	dest->fGroupEId.groupAddress() == addr &&
-	dest->fGroupEId.portNum() == portNum(addr)) {
+	dest->fGroupEId.portNum() == port.num()) {
       return;
     }
   }

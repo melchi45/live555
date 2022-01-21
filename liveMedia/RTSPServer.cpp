@@ -133,10 +133,12 @@ portNumBits RTSPServer::httpServerPortNum() const {
 }
 
 void RTSPServer
-::setTLSState(char const* certFileName, char const* privKeyFileName, Boolean weServeSRTP) {
+::setTLSState(char const* certFileName, char const* privKeyFileName,
+	      Boolean weServeSRTP, Boolean weEncryptSRTP) {
   setTLSFileNames(certFileName, privKeyFileName);
   fOurConnectionsUseTLS = True;
   fWeServeSRTP = weServeSRTP;
+  fWeEncryptSRTP = weEncryptSRTP;
 }
 
 char const* RTSPServer::allowedCommandNames() {
@@ -222,7 +224,10 @@ Boolean RTSPServer::isRTSPServer() const {
 
 void RTSPServer::addServerMediaSession(ServerMediaSession* serverMediaSession) {
   GenericMediaServer::addServerMediaSession(serverMediaSession);
-  if (serverMediaSession != NULL) serverMediaSession->streamingIsEncrypted = fWeServeSRTP;
+  if (serverMediaSession != NULL) {
+    serverMediaSession->streamingUsesSRTP = fWeServeSRTP;
+    serverMediaSession->streamingIsEncrypted = fWeEncryptSRTP;
+  }
 }
 
 void RTSPServer::incomingConnectionHandlerHTTPIPv4(void* instance, int /*mask*/) {

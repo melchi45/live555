@@ -52,7 +52,7 @@ RTPSink::RTPSink(UsageEnvironment& env,
   : MediaSink(env), fRTPInterface(this, rtpGS),
     fRTPPayloadType(rtpPayloadType),
     fPacketCount(0), fOctetCount(0), fTotalOctetCount(0),
-    fMIKEYState(NULL),
+    fMIKEYState(NULL), fCrypto(NULL),
     fTimestampFrequency(rtpTimestampFrequency), fNextTimestampHasBeenPreset(False), fEnableRTCPReports(True),
     fNumChannels(numChannels), fEstimatedBitrate(0) {
   fRTPPayloadFormatName
@@ -71,7 +71,7 @@ RTPSink::RTPSink(UsageEnvironment& env,
 RTPSink::~RTPSink() {
   delete fTransmissionStatsDB;
   delete[] (char*)fRTPPayloadFormatName;
-  delete fMIKEYState;
+  delete fCrypto; delete fMIKEYState;
   fRTPInterface.forgetOurGroupsock();
     // so that the "fRTPInterface" destructor doesn't turn off background read handling (in case
     // its 'groupsock' is being shared with something else that does background read handling).
@@ -131,6 +131,28 @@ void RTPSink::resetPresentationTimes() {
   fInitialPresentationTime.tv_usec = fMostRecentPresentationTime.tv_usec = 0;
 }
 
+void RTPSink::setupForSRTP(Boolean useEncryption) {
+  // Set up keying state for streaming via SRTP:
+  delete fCrypto; delete fMIKEYState;
+  fMIKEYState = new MIKEYState(useEncryption);
+  fCrypto = new SRTPCryptographicContext(*fMIKEYState);
+}
+
+u_int8_t* RTPSink::setupForSRTP(Boolean useEncryption, unsigned& resultMIKEYStateMessageSize) {
+  // Set up keying state for streaming via SRTP:
+  setupForSRTP(useEncryption);
+
+  u_int8_t* MIKEYStateMessage = fMIKEYState->generateMessage(resultMIKEYStateMessageSize);
+  return MIKEYStateMessage;
+}
+
+void RTPSink::setupForSRTP(u_int8_t const* MIKEYStateMessage, unsigned MIKEYStateMessageSize) {
+  // Set up keying state for streaming via SRTP:
+  delete fCrypto; delete fMIKEYState;
+  fMIKEYState = MIKEYState::createNew(MIKEYStateMessage, MIKEYStateMessageSize);
+  fCrypto = new SRTPCryptographicContext(*fMIKEYState);
+}
+
 char const* RTPSink::sdpMediaType() const {
   return "data";
   // default SDP media (m=) type, unless redefined by subclasses
@@ -162,12 +184,7 @@ char* RTPSink::rtpmapLine() const {
   }
 }
 
-char* RTPSink::keyMgmtLine(Boolean streamingIsEncrypted) {
-  if (streamingIsEncrypted && fMIKEYState == NULL) {
-    // Set up keying state for streaming via SRTP:
-    fMIKEYState = new MIKEYState;
-  }
-
+char* RTPSink::keyMgmtLine() {
   u_int8_t* mikeyMessage;
   unsigned mikeyMessageSize;
   if (fMIKEYState != NULL &&

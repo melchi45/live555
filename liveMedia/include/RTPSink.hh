@@ -27,9 +27,8 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #ifndef _RTP_INTERFACE_HH
 #include "RTPInterface.hh"
 #endif
-
-#ifndef _MIKEY_HH
-#include "MIKEY.hh"
+#ifndef _SRTP_CRYPTOGRAPHIC_CONTEXT_HH
+#include "SRTPCryptographicContext.hh"
 #endif
 
 class RTPTransmissionStatsDB; // forward
@@ -52,9 +51,16 @@ public:
 
   unsigned numChannels() const { return fNumChannels; }
 
+  void setupForSRTP(Boolean useEncryption);
+      // sets up keying/encryption state for streaming via SRTP, using default values.
+  u_int8_t* setupForSRTP(Boolean useEncryption, unsigned& resultMIKEYStateMessageSize);
+      // as above, but returns the binary MIKEY state
+  void setupForSRTP(u_int8_t const* MIKEYStateMessage, unsigned MIKEYStateMessageSize);
+      // as above, but takes a MIKEY state message as parameter
+
   virtual char const* sdpMediaType() const; // for use in SDP m= lines
   virtual char* rtpmapLine() const; // returns a string to be delete[]d
-  virtual char* keyMgmtLine(Boolean streamingIsEncrypted); // returns a string to be delete[]d
+  virtual char* keyMgmtLine(); // returns a string to be delete[]d
   virtual char const* auxSDPLine();
       // optional SDP line (e.g. a=fmtp:...)
 
@@ -94,6 +100,8 @@ public:
   u_int32_t SSRC() const {return fSSRC;}
      // later need a means of changing the SSRC if there's a collision #####
 
+  SRTPCryptographicContext* getCrypto() const { return fCrypto; }
+
 protected:
   RTPSink(UsageEnvironment& env,
 	  Groupsock* rtpGS, unsigned char rtpPayloadType,
@@ -118,7 +126,10 @@ protected:
   struct timeval fTotalOctetCountStartTime, fInitialPresentationTime, fMostRecentPresentationTime;
   u_int32_t fCurrentTimestamp;
   u_int16_t fSeqNo;
-  MIKEYState* fMIKEYState; // used if we are streaming SRTP
+
+  // Optional key management and crypto state; used if we are streaming SRTP
+  MIKEYState* fMIKEYState;
+  SRTPCryptographicContext* fCrypto;
 
 private:
   // redefined virtual functions:
