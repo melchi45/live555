@@ -30,14 +30,12 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 class MIKEYState {
 public:
-  MIKEYState(); // initialize with default parameters
+  MIKEYState(Boolean useEncryption = True); // initialize with default parameters
   virtual ~MIKEYState();
 
-  static MIKEYState* createNew(u_int8_t* messageToParse, unsigned messageSize);
+  static MIKEYState* createNew(u_int8_t const* messageToParse, unsigned messageSize);
       // (Attempts to) parse a binary MIKEY message, returning a new "MIKEYState" if successful
       // (or NULL if unsuccessful).
-      // ("messageToParse" is assumed to have been dynamically allocated;
-      // this function will delete[] it.)
 
   u_int8_t* generateMessage(unsigned& messageSize) const;
       // Returns a binary message representing the current MIKEY state, of size "messageSize" bytes.

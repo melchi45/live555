@@ -110,7 +110,7 @@ public:
   portNumBits httpServerPortNum() const; // in host byte order.  (Returns 0 if not present.)
 
   void setTLSState(char const* certFileName, char const* privKeyFileName,
-		   Boolean weServeSRTP = False/*later change to True #####@@@@@*/);
+		   Boolean weServeSRTP = True, Boolean weEncryptSRTP = True);
 
 protected:
   RTSPServer(UsageEnvironment& env,
@@ -333,6 +333,7 @@ private:
   Boolean fAllowStreamingRTPOverTCP; // by default, True
   Boolean fOurConnectionsUseTLS; // by default, False
   Boolean fWeServeSRTP; // used only if "fOurConnectionsUseTLS" is True
+  Boolean fWeEncryptSRTP; // used only if "fWeServeSRTP" is True
 };
 
 

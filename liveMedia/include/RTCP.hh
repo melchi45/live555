@@ -66,6 +66,8 @@ public:
   unsigned numMembers() const;
   unsigned totSessionBW() const { return fTotSessionBW; }
 
+  void setupForSRTCP();
+  
   void setByeHandler(TaskFunc* handlerTask, void* clientData,
 		     Boolean handleActiveParticipantsOnly = True);
       // Assigns a handler routine to be called if a "BYE" arrives.

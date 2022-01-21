@@ -73,6 +73,7 @@ public:
     //   you must first close any client connections that use it,
     //   by calling "RTSPServer::closeAllClientSessionsForServerMediaSession()".
 
+  Boolean streamingUsesSRTP; // by default, False
   Boolean streamingIsEncrypted; // by default, False
 
 protected:
