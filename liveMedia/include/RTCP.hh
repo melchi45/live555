@@ -14,7 +14,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 **********/
 // "liveMedia"
-// Copyright (c) 1996-2021 Live Networks, Inc.  All rights reserved.
+// Copyright (c) 1996-2022 Live Networks, Inc.  All rights reserved.
 // RTCP
 // C++ header
 
@@ -66,6 +66,8 @@ public:
   unsigned numMembers() const;
   unsigned totSessionBW() const { return fTotSessionBW; }
 
+  void setupForSRTCP();
+  
   void setByeHandler(TaskFunc* handlerTask, void* clientData,
 		     Boolean handleActiveParticipantsOnly = True);
       // Assigns a handler routine to be called if a "BYE" arrives.

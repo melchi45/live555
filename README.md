@@ -1,4 +1,8 @@
 ## Live555
+
+ [![codecov](https://codecov.io/gh/melchi45/live555/branch/master/graph/badge.svg?token=C0AIRJXUGI)](https://codecov.io/gh/melchi45/live555) [![Latest release](https://img.shields.io/github/v/release/melchi45/live555)](https://github.com/melchi45/live555/releases/latest) [![Test](https://github.com/melchi45/live555/actions/workflows/test.yml/badge.svg)](https://github.com/melchi45/live555/actions/workflows/test.yml) [![CMake](https://github.com/melchi45/live555/actions/workflows/release.yml/badge.svg)](https://github.com/melchi45/live555/actions/workflows/release.yml)
+
+
 You can check new version from Live555.
 
 For documentation and instructions for building this software,
@@ -59,9 +63,30 @@ And you have to choose the architect option for win32 or win64  with -A option i
 * cmake -G "Visual Studio 17 2022" -A ARM
 * cmake -G "Visual Studio 17 2022" -A ARM64
 
+### openssl on Windows environment
+
+#### use the OpenSSL-Win32 or OpenSSL-Win64 binary 
+Reference: https://slproweb.com/products/Win32OpenSSL.html
+
 If you should be OpenSSL-Win32 or OpenSSL-Win64 binary package. you have to change the lib files names on Preferences menu from Visual Studio IDE.
-* libssl32MD(d).lib or libcrypto32MD(d).lib 
-* libssl64MD(d).lib or libcrypto64MD(d).lib 
+* libssl32MD(d).lib or libcrypto32MD(d).lib (-A Win32 option selected) 
+* libssl64MD(d).lib or libcrypto64MD(d).lib (-A Win64 option selected) 
+
+If you want automatically check the openssl on cmake. add OPENSSL path to system environment variables.
+
+#### use the openssl on vcpkg
+If you want automatically check the openssl on cmake. add OPENSSL path to system environment variables.
+or you can use the CMAKE_PREFIX_PATH option in cmake configuration command. But, you have to check the openssl version, it needs over the version 1.1.1.
+
+```cmd
+# cmake -B x64 -G "Visual Studio 17 2022" -A x64 \
+  -DCMAKE_VERBOSE_MAKEFILE=ON \
+  -DLIVE555_ENABLE_OPENSSL=ON \
+  -DCMAKE_TOOLCHAIN_FILE="[path to vcpkg]/scripts/buildsystems/vcpkg.cmake" \ # vcpkg cmake files location
+  -DCMAKE_PREFIX_PATH="[path to vcpkg]/installed/x64-windows-static" \ # vcpkg prefix path
+  -DVCPKG_TARGET_TRIPLET=x64-windows-static \
+  -DCMAKE_CL_64=1
+```
 
 *****
 build live555 library and executable file.
@@ -85,6 +110,8 @@ If you need to change options in other ways, you can set them manually as follow
   -DCMAKE_INSTALL_PREFIX=${OUT_PATH}
 # make; make install
 ```
+
+If you see the [required is at least "1.1.1"] on vcpkg, you have to change the version to 1.0.0 on CMakeFiles.
 
 *****
 ## For Linux
@@ -222,6 +249,16 @@ If you installed the toolchain by referring to https://goo.gl/TtcjGb, you are in
   -DCMAKE_OBJDUMP=${CROSS_COMPILE}objdump \
   -DCMAKE_LINKER=${CROSS_COMPILE}ld
 # make; make install  
+```
+
+or If you have already toolchain file for cmake. You can be simplify with cmake file like this:
+
+```shell
+# cmake -B toolchain -G "Unix Makefiles" \
+  -DLIVE555_BUILD_EXAMPLES=ON \
+  -DCMAKE_TOOLCHAIN_FILE=/mnt/e/live555/toolchains/aarch64-linux-gnu.toolchain.cmake \
+  -DLIVE555_ENABLE_OPENSSL=OFF
+# cmake --build toolchain
 ```
 
 *****

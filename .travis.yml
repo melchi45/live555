@@ -1,0 +1,28 @@
+language: cpp
+compiler: gcc
+
+os: linux
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - gcc-10
+      - g++-10
+      - lcov
+      - cmake
+
+script:
+  - export CC=gcc-7
+  - export CXX=g++-7
+  - cmake --version
+  - cmake -B linux 
+  - cmake  --build . --target neat
+  - ./travis_qmake_gcc_cpp11_gcov
+  - ./get_code_cov.sh # or how ever you get your coverage
+codecov:
+  token: b8d88c88-b166-447d-ac79-ce589720a9fb
+  
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+  - codecov -t b8d88c88-b166-447d-ac79-ce589720a9fb -X gcov

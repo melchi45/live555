@@ -14,7 +14,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 **********/
 // "liveMedia"
-// Copyright (c) 1996-2021 Live Networks, Inc.  All rights reserved.
+// Copyright (c) 1996-2022 Live Networks, Inc.  All rights reserved.
 // RTCP
 // Implementation
 
@@ -141,6 +141,8 @@ RTCPInstance::RTCPInstance(UsageEnvironment& env, Groupsock* RTCPgs,
 #ifdef DEBUG
   fprintf(stderr, "RTCPInstance[%p]::RTCPInstance()\n", this);
 #endif
+  setupForSRTCP();
+
   if (fTotSessionBW == 0) { // not allowed!
     env << "RTCPInstance::RTCPInstance error: totSessionBW parameter should not be zero!\n";
     fTotSessionBW = 1;
@@ -279,6 +281,12 @@ unsigned RTCPInstance::numMembers() const {
   if (fKnownMembers == NULL) return 0;
 
   return fKnownMembers->numMembers();
+}
+
+void RTCPInstance::setupForSRTCP() {
+  if (fCrypto == NULL && fSink != NULL) { // take crypto state (if any) from the sink instead:
+    fCrypto = fSink->getCrypto();
+  }
 }
 
 void RTCPInstance::setByeHandler(TaskFunc* handlerTask, void* clientData,

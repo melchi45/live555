@@ -14,7 +14,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 **********/
 // "liveMedia"
-// Copyright (c) 1996-2021 Live Networks, Inc.  All rights reserved.
+// Copyright (c) 1996-2022 Live Networks, Inc.  All rights reserved.
 // A RTSP server
 // Implementation
 
@@ -133,10 +133,12 @@ portNumBits RTSPServer::httpServerPortNum() const {
 }
 
 void RTSPServer
-::setTLSState(char const* certFileName, char const* privKeyFileName, Boolean weServeSRTP) {
+::setTLSState(char const* certFileName, char const* privKeyFileName,
+	      Boolean weServeSRTP, Boolean weEncryptSRTP) {
   setTLSFileNames(certFileName, privKeyFileName);
   fOurConnectionsUseTLS = True;
   fWeServeSRTP = weServeSRTP;
+  fWeEncryptSRTP = weEncryptSRTP;
 }
 
 char const* RTSPServer::allowedCommandNames() {
@@ -218,6 +220,14 @@ RTSPServer::~RTSPServer() {
 
 Boolean RTSPServer::isRTSPServer() const {
   return True;
+}
+
+void RTSPServer::addServerMediaSession(ServerMediaSession* serverMediaSession) {
+  GenericMediaServer::addServerMediaSession(serverMediaSession);
+  if (serverMediaSession != NULL) {
+    serverMediaSession->streamingUsesSRTP = fWeServeSRTP;
+    serverMediaSession->streamingIsEncrypted = fWeEncryptSRTP;
+  }
 }
 
 void RTSPServer::incomingConnectionHandlerHTTPIPv4(void* instance, int /*mask*/) {
@@ -1564,10 +1574,11 @@ void RTSPServer::RTSPClientSession
 		     "RTSP/1.0 200 OK\r\n"
 		     "CSeq: %s\r\n"
 		     "%s"
-		     "Transport: RTP/AVP;multicast;destination=%s;source=%s;port=%d-%d;ttl=%d\r\n"
+		     "Transport: RTP/%s;multicast;destination=%s;source=%s;port=%d-%d;ttl=%d\r\n"
 		     "Session: %08X%s\r\n\r\n",
 		     fOurClientConnection->fCurrentCSeq,
 		     dateHeader(),
+		     fOurRTSPServer.fWeServeSRTP ? "SAVP" : "AVP",
 		     destAddrStr.val(), sourceAddrStr.val(), ntohs(serverRTPPort.num()), ntohs(serverRTCPPort.num()), destinationTTL,
 		     fOurSessionId, timeoutParameterString);
 	    break;
@@ -1598,10 +1609,11 @@ void RTSPServer::RTSPClientSession
 		     "RTSP/1.0 200 OK\r\n"
 		     "CSeq: %s\r\n"
 		     "%s"
-		     "Transport: RTP/AVP;unicast;destination=%s;source=%s;client_port=%d-%d;server_port=%d-%d\r\n"
+		     "Transport: RTP/%s;unicast;destination=%s;source=%s;client_port=%d-%d;server_port=%d-%d\r\n"
 		     "Session: %08X%s\r\n\r\n",
 		     fOurClientConnection->fCurrentCSeq,
 		     dateHeader(),
+		     fOurRTSPServer.fWeServeSRTP ? "SAVP" : "AVP",
 		     destAddrStr.val(), sourceAddrStr.val(), ntohs(clientRTPPort.num()), ntohs(clientRTCPPort.num()), ntohs(serverRTPPort.num()), ntohs(serverRTCPPort.num()),
 		     fOurSessionId, timeoutParameterString);
 	    break;

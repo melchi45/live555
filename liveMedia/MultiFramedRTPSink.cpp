@@ -14,7 +14,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 **********/
 // "liveMedia"
-// Copyright (c) 1996-2021 Live Networks, Inc.  All rights reserved.
+// Copyright (c) 1996-2022 Live Networks, Inc.  All rights reserved.
 // RTP sink for a common kind of payload format: Those which pack multiple,
 // complete codec frames (as many as possible) into each RTP packet.
 // Implementation
@@ -368,9 +368,28 @@ void MultiFramedRTPSink::sendPacketIfNecessary() {
 #ifdef TEST_LOSS
     if ((our_random()%10) != 0) // simulate 10% packet loss #####
 #endif
-      if (!fRTPInterface.sendPacket(fOutBuf->packet(), fOutBuf->curPacketSize())) {
-	// if failure handler has been specified, call it
-	if (fOnSendErrorFunc != NULL) (*fOnSendErrorFunc)(fOnSendErrorData);
+      if (fCrypto != NULL) { // Encrypt/tag the data before sending it:
+#ifndef NO_OPENSSL
+	// Hack: Because the MKI + authentication tag at the end of the packet would
+	// overwrite any following (still to be sent) frame data, we can't encrypt/tag
+	// the packet in place.  Instead, we have to make a copy (on the stack) of
+	// the packet, before encrypting/tagging/sending it:
+	u_int8_t packet[fOutBuf->curPacketSize() + SRTP_MKI_LENGTH + SRTP_AUTH_TAG_LENGTH];
+	memcpy(packet, fOutBuf->packet(), fOutBuf->curPacketSize());
+	unsigned newPacketSize;
+	
+	if (fCrypto->processOutgoingSRTPPacket(packet, fOutBuf->curPacketSize(), newPacketSize)) {
+	  if (!fRTPInterface.sendPacket(packet, newPacketSize)) {
+	    // if failure handler has been specified, call it
+	    if (fOnSendErrorFunc != NULL) (*fOnSendErrorFunc)(fOnSendErrorData);
+	  }
+	}
+#endif
+      } else { // unencrypted
+	if (!fRTPInterface.sendPacket(fOutBuf->packet(), fOutBuf->curPacketSize())) {
+	  // if failure handler has been specified, call it
+	  if (fOnSendErrorFunc != NULL) (*fOnSendErrorFunc)(fOnSendErrorData);
+	}
       }
     ++fPacketCount;
     fTotalOctetCount += fOutBuf->curPacketSize();
