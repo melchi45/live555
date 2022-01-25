@@ -19,6 +19,12 @@ on:
 env:
   # Path to the CMake build directory.
   build: '${{ github.workspace }}/build'
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+  OUT_PATH: install
+  CHECKOUT_REF: 'v103.0.13'
+  # ARCHIVE_NAME: ${{ github.event.repository.name }}-${{env.CHECKOUT_REF}}
+  ARCHIVE_NAME: ${{ github.event.repository.name }}  
 
 jobs:
   analyze:
