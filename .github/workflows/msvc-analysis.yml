@@ -30,7 +30,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Configure CMake
-        run: cmake -B ${{ env.build }}
+        run: cmake -B ${{ env.build }} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DLIVE555_ENABLE_OPENSSL=ON
 
       # Build is not required unless generated source files are used
       # - name: Build CMake
