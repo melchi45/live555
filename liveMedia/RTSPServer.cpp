@@ -139,6 +139,10 @@ void RTSPServer
   fOurConnectionsUseTLS = True;
   fWeServeSRTP = weServeSRTP;
   fWeEncryptSRTP = weEncryptSRTP;
+
+  if (fWeServeSRTP) disableStreamingRTPOverTCP();
+    // If you want to stream RTP-over-TCP using a secure TCP connection, then stream over TLS,
+    // but without SRTP (as that would add extra overhead for no benefit).
 }
 
 char const* RTSPServer::allowedCommandNames() {

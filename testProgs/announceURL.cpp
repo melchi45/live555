@@ -22,7 +22,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include <GroupsockHelper.hh> // for "weHaveAnIPv*Address()"
 
 void announceURL(RTSPServer* rtspServer, ServerMediaSession* sms) {
-  if (rtspServer == NULL || sms == NULL) return; // sanuty check
+  if (rtspServer == NULL || sms == NULL) return; // sanity check
 
   UsageEnvironment& env = rtspServer->envir();
 
