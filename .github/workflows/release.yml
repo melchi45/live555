@@ -14,25 +14,54 @@ env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
   OUT_PATH: install
-  CHECKOUT_REF: 'v103.0.0'
-  ARCHIVE_NAME: ${{ github.event.repository.name }}-${{ github.event.repository.tag_name }}
+  CHECKOUT_REF: 'v103.0.13'
+#   ARCHIVE_NAME: ${{ github.event.repository.name }}-${{env.CHECKOUT_REF}}
+  ARCHIVE_NAME: ${{ github.event.repository.name }}
+#https://www.sysnet.pe.kr/2/0/12542
 jobs:
-  build:
+  create_release:
+    name: Create release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{env.BUILD_TYPE}} ${{ github.ref }}
+          body: |
+            Automated Release by GitHub Action CI
+          draft: false
+          prerelease: false
+          
+  build_linux_static:
     # The CMake configure and build commands are platform agnostic and should work equally
     # well on Windows or Mac.  You can convert this to a matrix build if you need
     # cross-platform coverage.
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    name: Ubuntu Static Build
+    needs: create_release
+#     strategy:
+#       matrix:
+#         kind: [x86, x64]
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v2
-      id: checkout
-      with:
-        # The branch, tag or SHA to checkout. When checking out the repository that
-        # triggered a workflow, this defaults to the reference or SHA for that event.
-        # Otherwise, uses the default branch.
-        ref: ${{env.CHECKOUT_REF}}
-
+#       id: checkout
+    - name: Set output
+      id: vars
+      run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+    - name: Check output
+      env:
+        RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
+      run: |
+        echo $RELEASE_VERSION
+        echo ${{ steps.vars.outputs.tag }}
+        
     - name: Configure CMake Static Library
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
@@ -53,8 +82,71 @@ jobs:
     - name: create-archive-static
       id: create_archive_static
       run: 
-        tar -czf "$ARCHIVE_NAME"_static.tar.gz ${{env.OUT_PATH}}
-      
+        tar -czf ${{env.ARCHIVE_NAME}}_static.tar.gz ${{env.OUT_PATH}}
+
+    - name: create-checksum
+      id: create-checksum
+      run: |
+        sha256sum "$ARCHIVE_NAME"_static.tar.gz > checksum_static.txt
+        echo "::set-output name=checksum::$(cut -d ' ' -f 1 checksum_static.txt)"
+        
+#     - name: create-release
+#       id: create_release
+#       uses: actions/create-release@v1
+#       env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token, https://github.com/settings/tokens
+#       with:
+#           tag_name: ${{ github.ref }}
+#           release_name: Release ${{ github.ref }}
+#           draft: false
+#           prerelease: false
+          
+    - name: upload-archive-static
+      id: upload-release-asset_static
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token, https://github.com/settings/tokens
+      with:
+        upload_url: ${{ needs.create_release.outputs.upload_url }}
+        asset_path: ${{ env.ARCHIVE_NAME }}_static.tar.gz
+        asset_name: ${{ env.ARCHIVE_NAME }}_static.tar.gz
+        asset_content_type: application/gzip
+    
+    - name: upload-checksum-static
+      id: upload-checksum_static
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token, https://github.com/settings/tokens
+      with:
+        upload_url: ${{ needs.create_release.outputs.upload_url }}
+        asset_path: checksum_static.txt
+        asset_name: checksum_static.txt
+        asset_content_type: text/plain
+
+  build_linux_shared:
+    # The CMake configure and build commands are platform agnostic and should work equally
+    # well on Windows or Mac.  You can convert this to a matrix build if you need
+    # cross-platform coverage.
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    name: Ubuntu Shared Build
+    needs: create_release
+#     strategy:
+#       matrix:
+#         kind: [x86, x64]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+#       id: checkout
+    - name: Set output
+      id: vars
+      run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+    - name: Check output
+      env:
+        RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
+      run: |
+        echo $RELEASE_VERSION
+        echo ${{ steps.vars.outputs.tag }}
+
     - name: Configure CMake Shared Library
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
@@ -75,67 +167,124 @@ jobs:
     - name: create-archive
       id: create_archive
       run: 
-        tar -czf "$ARCHIVE_NAME"_shared.tar.gz ${{env.OUT_PATH}}
+        tar -czf ${{env.ARCHIVE_NAME}}_shared.tar.gz ${{env.OUT_PATH}}
 
     - name: create-checksum
       id: create-checksum
       run: |
-        sha256sum "$ARCHIVE_NAME"_static.tar.gz > checksum_static.txt
-        echo "::set-output name=checksum::$(cut -d ' ' -f 1 checksum_static.txt)"
         sha256sum "$ARCHIVE_NAME"_shared.tar.gz > checksum_shared.txt
         echo "::set-output name=checksum::$(cut -d ' ' -f 1 checksum_shared.txt)"
         
-    - name: create-release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token, https://github.com/settings/tokens
-      with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
+#     - name: create-release
+#       id: create_release
+#       uses: actions/create-release@v1
+#       env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token, https://github.com/settings/tokens
+#       with:
+#           tag_name: ${{ github.ref }}
+#           release_name: Release ${{ github.ref }}
+#           draft: false
+#           prerelease: false
           
-    - name: upload-archive-static
-      id: upload-release-asset_static
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token, https://github.com/settings/tokens
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ env.ARCHIVE_NAME }}_static.tar.gz
-        asset_name: ${{ env.ARCHIVE_NAME }}_static.tar.gz
-        asset_content_type: application/gzip
-
     - name: upload-archive-shared
       id: upload-release-asset_shared
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token, https://github.com/settings/tokens
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        upload_url: ${{ needs.create_release.outputs.upload_url }}
         asset_path: ${{ env.ARCHIVE_NAME }}_shared.tar.gz
         asset_name: ${{ env.ARCHIVE_NAME }}_shared.tar.gz
         asset_content_type: application/gzip
-    
-    - name: upload-checksum-static
-      id: upload-checksum_static
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token, https://github.com/settings/tokens
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: checksum_static.txt
-        asset_name: checksum_static.txt
-        asset_content_type: text/plain
-        
+       
     - name: upload-checksum-shared
       id: upload-checksum_shared
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token, https://github.com/settings/tokens
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        upload_url: ${{ needs.create_release.outputs.upload_url }}
         asset_path: checksum_shared.txt
         asset_name: checksum_shared.txt
         asset_content_type: text/plain
+        
+  build_windows:
+    name: Windows Static Build
+    needs: create_release
+#     strategy:
+#       matrix:
+#         kind: [x86, x64]
+    runs-on: windows-latest
+    steps:
+      - name: Install 7Zip PowerShell Module
+        shell: powershell
+        run: Install-Module 7Zip4PowerShell -Force
+        
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+        
+      - uses: actions/checkout@v2
+#       id: checkout
+      - name: Set output
+        id: vars
+        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+      - name: Check output
+        env:
+          RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
+        run: |
+          echo "$RELEASE_VERSION"
+          echo "${{ steps.vars.outputs.tag }}"
+
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v1
+
+      - name: Installing vcpkg
+        run: |
+          git clone --depth 1 https://github.com/Microsoft/vcpkg.git
+          cd vcpkg
+          .\bootstrap-vcpkg.bat
+          .\vcpkg.exe integrate install
+          .\vcpkg.exe install openssl:x64-windows
+          set OPENSSL_ROOT_DIR="./installed/x64-windows"
+      - name: Configure CMake
+        # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+        # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+        #-DCMAKE_TOOLCHAIN_FILE=D:/a/live555/live555/vcpkg/scripts/buildsystems/vcpkg.cmake
+        #-DOPENSSL_ROOT_DIR="D:/vcpkg/installed/x64-windows" 
+        run: 
+          #cmake -B ${{github.workspace}}/windows -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{env.OUT_PATH}} -DLIVE555_ENABLE_OPENSSL=OFF -DLIVE555_BUILD_EXAMPLES=OFF -DCMAKE_TOOLCHAIN_FILE="./vcpkg/scripts/buildsystems/vcpkg.cmake"          
+          #cmake -B ${{github.workspace}}/windows -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{env.OUT_PATH}} -DLIVE555_ENABLE_OPENSSL=ON -DLIVE555_BUILD_EXAMPLES=ON -DCMAKE_TOOLCHAIN_FILE="./vcpkg/scripts/buildsystems/vcpkg.cmake" -DCMAKE_PREFIX_PATH="./vcpkg/installed/x64-windows" -DOPENSSL_ROOT_DIR="./vcpkg/installed/x64-windows" -DVCPKG_TARGET_TRIPLET=x64-windows-static
+          cmake -B ${{github.workspace}}/windows -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{env.OUT_PATH}} -DLIVE555_ENABLE_OPENSSL=OFF -DLIVE555_BUILD_EXAMPLES=OFF -DCMAKE_TOOLCHAIN_FILE="./vcpkg/scripts/buildsystems/vcpkg.cmake"
+        
+      - name: Build
+        # Build your program with the given configuration
+        run: 
+          cmake --build ${{github.workspace}}/windows --config ${{env.BUILD_TYPE}} --target ${{env.OUT_PATH}}
+
+      - name: create-archive
+        id: create_archive
+        run: 
+          powershell Compress-7Zip ${{env.OUT_PATH}} -ArchiveFileName ${{env.ARCHIVE_NAME}}_win64.zip -Format Zip
+
+#       - name: create-release
+#         id: create_release
+#         uses: actions/create-release@v1
+#         env:
+#             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token, https://github.com/settings/tokens
+#         with:
+#             tag_name: ${{ github.ref }}_${{ steps.date.outputs.date }}
+#             release_name: Release ${{ github.ref }} ${{ steps.date.outputs.date }}
+#             draft: false
+#             prerelease: false
+
+      - name: upload-archive-shared
+        id: upload-release-asset_shared
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token, https://github.com/settings/tokens
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: ${{ env.ARCHIVE_NAME }}_win64.zip
+          asset_name: ${{ env.ARCHIVE_NAME }}_win64.zip
+          asset_content_type: application/gzip

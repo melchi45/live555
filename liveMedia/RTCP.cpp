@@ -141,6 +141,8 @@ RTCPInstance::RTCPInstance(UsageEnvironment& env, Groupsock* RTCPgs,
 #ifdef DEBUG
   fprintf(stderr, "RTCPInstance[%p]::RTCPInstance()\n", this);
 #endif
+  setupForSRTCP();
+
   if (fTotSessionBW == 0) { // not allowed!
     env << "RTCPInstance::RTCPInstance error: totSessionBW parameter should not be zero!\n";
     fTotSessionBW = 1;
@@ -279,6 +281,12 @@ unsigned RTCPInstance::numMembers() const {
   if (fKnownMembers == NULL) return 0;
 
   return fKnownMembers->numMembers();
+}
+
+void RTCPInstance::setupForSRTCP() {
+  if (fCrypto == NULL && fSink != NULL) { // take crypto state (if any) from the sink instead:
+    fCrypto = fSink->getCrypto();
+  }
 }
 
 void RTCPInstance::setByeHandler(TaskFunc* handlerTask, void* clientData,

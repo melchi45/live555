@@ -241,8 +241,8 @@ H265VideoFileSink.$(CPP):       include/H265VideoFileSink.hh include/OutputFile.
 include/H265VideoFileSink.hh:   include/H264or5VideoFileSink.hh
 OggFileSink.$(CPP):		include/OggFileSink.hh include/OutputFile.hh include/VorbisAudioRTPSource.hh include/MPEG2TransportStreamMultiplexor.hh include/FramedSource.hh
 include/OggFileSink.hh:		include/FileSink.hh
-RTPSink.$(CPP):			include/RTPSink.hh
-include/RTPSink.hh:		include/MediaSink.hh include/RTPInterface.hh include/MIKEY.hh
+RTPSink.$(CPP):			include/RTPSink.hh include/Base64.hh
+include/RTPSink.hh:		include/MediaSink.hh include/RTPInterface.hh include/SRTPCryptographicContext.hh
 MultiFramedRTPSink.$(CPP):	include/MultiFramedRTPSink.hh
 include/MultiFramedRTPSink.hh:		include/RTPSink.hh
 AudioRTPSink.$(CPP):		include/AudioRTPSink.hh

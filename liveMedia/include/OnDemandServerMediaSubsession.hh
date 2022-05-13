@@ -133,6 +133,8 @@ protected:
 
 protected:
   char* fSDPLines;
+  u_int8_t* fMIKEYStateMessage; // used if we're streaming SRTP
+  unsigned fMIKEYStateMessageSize; // ditto
   HashTable* fDestinationsHashTable; // indexed by client session id
 
 private:

@@ -336,6 +336,7 @@ static MIKEYState* parseSDPAttribute_key_mgmtToMIKEY(char const* sdpLine) {
     if (keyMgmtData_decoded == NULL) break;
 
     resultMIKEYState = MIKEYState::createNew(keyMgmtData_decoded, keyMgmtData_decodedSize);
+    delete[] keyMgmtData_decoded;
   } while (0);
 
   delete[] keyMgmtPrtclId;

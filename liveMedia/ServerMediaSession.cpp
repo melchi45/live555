@@ -63,7 +63,8 @@ ServerMediaSession::ServerMediaSession(UsageEnvironment& env,
 				       char const* info,
 				       char const* description,
 				       Boolean isSSM, char const* miscSDPLines)
-  : Medium(env), streamingIsEncrypted(False), fIsSSM(isSSM), fSubsessionsHead(NULL),
+  : Medium(env), streamingUsesSRTP(False), streamingIsEncrypted(False),
+    fIsSSM(isSSM), fSubsessionsHead(NULL),
     fSubsessionsTail(NULL), fSubsessionCounter(0),
     fReferenceCount(0), fDeleteWhenUnreferenced(False) {
   fStreamName = strDup(streamName == NULL ? "" : streamName);

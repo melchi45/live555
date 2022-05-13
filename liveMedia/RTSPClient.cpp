@@ -154,6 +154,23 @@ unsigned RTSPClient::sendGetParameterCommand(MediaSession& session, responseHand
   return result;
 }
 
+static char* createRequireString(char const* requireValue) {
+  char buf[100];
+  if (requireValue == NULL) {
+    // This is the default value; we don't need a "Require:" header:
+    buf[0] = '\0';
+  } else {
+    snprintf(buf, sizeof buf, "Require: %s\r\n", requireValue);
+  }
+
+  return strDup(buf);
+}
+
+void RTSPClient::setRequireValue(char const* requireValue) {
+  delete[] fRequireStr;
+  fRequireStr = createRequireString(requireValue);
+}
+
 void RTSPClient::sendDummyUDPPackets(MediaSession& session, unsigned numDummyPackets) {
   MediaSubsessionIterator iter(session);
   MediaSubsession* subsession;
@@ -381,12 +398,15 @@ RTSPClient::RTSPClient(UsageEnvironment& env, char const* rtspURL,
     fAllowBasicAuthentication(True), fTunnelOverHTTPPortNum(tunnelOverHTTPPortNum),
     fUserAgentHeaderStr(NULL), fUserAgentHeaderStrLen(0),
     fInputSocketNum(-1), fOutputSocketNum(-1), fBaseURL(NULL), fTCPStreamIdCount(0),
-    fLastSessionId(NULL), fSessionTimeoutParameter(0), fSessionCookieCounter(0), fHTTPTunnelingConnectionIsPending(False),
+    fLastSessionId(NULL), fSessionTimeoutParameter(0), fRequireStr(NULL),
+    fSessionCookieCounter(0), fHTTPTunnelingConnectionIsPending(False),
     fTLS(*this) {
   setBaseURL(rtspURL);
 
   fResponseBuffer = new char[responseBufferSize+1];
   resetResponseBuffer();
+
+  setRequireValue();
 
   if (socketNumToServer >= 0) {
     // This socket number is (assumed to be) already connected to the server.
@@ -417,6 +437,7 @@ RTSPClient::RTSPClient(UsageEnvironment& env, char const* rtspURL,
 RTSPClient::~RTSPClient() {
   reset();
 
+  delete[] fRequireStr;
   delete[] fResponseBuffer;
   delete[] fUserAgentHeaderStr;
 }
@@ -518,6 +539,7 @@ unsigned RTSPClient::sendRequest(RequestRecord* request) {
       "%s"
       "%s"
       "%s"
+      "%s"
       "\r\n"
       "%s";
     unsigned cmdSize = strlen(cmdFmt)
@@ -525,6 +547,7 @@ unsigned RTSPClient::sendRequest(RequestRecord* request) {
       + 20 /* max int len */
       + strlen(authenticatorStr)
       + fUserAgentHeaderStrLen
+      + strlen(fRequireStr)
       + strlen(extraHeaders)
       + strlen(contentLengthHeader)
       + contentStrLen;
@@ -534,6 +557,7 @@ unsigned RTSPClient::sendRequest(RequestRecord* request) {
 	    request->cseq(),
 	    authenticatorStr,
 	    fUserAgentHeaderStr,
+	    fRequireStr,
             extraHeaders,
 	    contentLengthHeader,
 	    contentStr);
@@ -595,7 +619,7 @@ static char* createSessionString(char const* sessionId) {
   return sessionStr;
 }
 
-// Add support for faster download thru "speed:" option on PLAY
+// Add support for faster download using the "speed:" option on PLAY
 static char* createSpeedString(float speed) {
   char buf[100];
   if (speed == 1.0f ) {
