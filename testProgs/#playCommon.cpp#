@@ -578,16 +578,9 @@ int main(int argc, char** argv) {
     *env << "Warning: The -q, -4 or -i option was used, but not -f.  Assuming a video frame rate of "
 	 << movieFPS << " frames-per-second\n";
   }
-  if (audioOnly && videoOnly) {
+k
+
     *env << "The -a and -v options cannot both be used!\n";
-    usage();
-  }
-  if (audioOnly && applicationOnly) {
-    *env << "The -a and -L options cannot both be used!\n";
-    usage();
-  }
-  if (videoOnly && applicationOnly) {
-    *env << "The -v and -L options cannot both be used!\n";
     usage();
   }
   if (sendOptionsRequestOnly && !sendOptionsRequest) {

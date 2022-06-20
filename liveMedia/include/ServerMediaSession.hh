@@ -69,9 +69,9 @@ public:
 
   void deleteAllSubsessions();
     // Removes and deletes all subsessions added by "addSubsession()", returning us to an 'empty' state
-    // Note: If you have already added this "ServerMediaSession" to a "RTSPServer" then, before calling this function,
+    // Note: If you have already added this "ServerMediaSession" to a server then, before calling this function,
     //   you must first close any client connections that use it,
-    //   by calling "RTSPServer::closeAllClientSessionsForServerMediaSession()".
+    //   by calling "GenericMediaServer::closeAllClientSessionsForServerMediaSession()".
 
   Boolean streamingUsesSRTP; // by default, False
   Boolean streamingIsEncrypted; // by default, False

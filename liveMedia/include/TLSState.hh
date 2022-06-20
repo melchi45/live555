@@ -41,6 +41,8 @@ public:
   int write(const char* data, unsigned count);
   int read(u_int8_t* buffer, unsigned bufferSize);
 
+  void nullify(); // clear the state so that the destructor will have no effect
+
 protected: // we're an abstract base class
   TLSState();
   virtual ~TLSState();
@@ -78,6 +80,7 @@ public:
   virtual ~ServerTLSState();
 
   void setCertificateAndPrivateKeyFileNames(char const* certFileName, char const* privKeyFileName);
+  void assignStateFrom(ServerTLSState const& from);
 
   int accept(int socketNum); // returns: <0 (error), 0 (pending), >0 (success)
 
