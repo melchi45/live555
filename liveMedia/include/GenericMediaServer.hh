@@ -128,6 +128,8 @@ public: // should be protected, but some old compilers complain otherwise
 
     // Optional support for TLS:
     ServerTLSState fTLS;
+    ServerTLSState* fInputTLS; // by default, just points to "fTLS", but subclasses may change
+    ServerTLSState* fOutputTLS; // ditto
   };
 
   // The state of an individual client session (using one or more sequential TCP connections) handled by a server:

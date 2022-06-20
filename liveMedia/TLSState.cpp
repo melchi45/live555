@@ -64,6 +64,14 @@ int TLSState::read(u_int8_t* buffer, unsigned bufferSize) {
 #endif
 }
 
+void TLSState::nullify() {
+#ifndef NO_OPENSSL
+  isNeeded = fHasBeenSetup = False;
+  fCtx = NULL;
+  fCon = NULL;
+#endif
+}
+
 #ifndef NO_OPENSSL
 void TLSState::initLibrary() {
   static Boolean SSLLibraryHasBeenInitialized = False;
@@ -171,6 +179,18 @@ void ServerTLSState
 #ifndef NO_OPENSSL
   fCertificateFileName = certFileName;
   fPrivateKeyFileName = privKeyFileName;
+#endif
+}
+
+void ServerTLSState::assignStateFrom(ServerTLSState const& from) {
+#ifndef NO_OPENSSL
+  isNeeded = from.isNeeded;
+  fHasBeenSetup = from.fHasBeenSetup;
+  fCtx = from.fCtx;
+  fCon = from.fCon;
+
+  fCertificateFileName = from.fCertificateFileName;
+  fPrivateKeyFileName = from.fPrivateKeyFileName;
 #endif
 }
 

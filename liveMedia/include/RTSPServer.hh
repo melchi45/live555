@@ -214,7 +214,8 @@ public: // should be protected, but some old compilers complain otherwise
     static void handleAlternativeRequestByte(void*, u_int8_t requestByte);
     void handleAlternativeRequestByte1(u_int8_t requestByte);
     Boolean authenticationOK(char const* cmdName, char const* urlSuffix, char const* fullRequestStr);
-    void changeClientInputSocket(int newSocketNum, unsigned char const* extraData, unsigned extraDataSize);
+    void changeClientInputSocket(int newSocketNum, ServerTLSState const* newTLSState,
+				 unsigned char const* extraData, unsigned extraDataSize);
       // used to implement RTSP-over-HTTP tunneling
     static void continueHandlingREGISTER(ParamsForREGISTER* params);
     virtual void continueHandlingREGISTER1(ParamsForREGISTER* params);
@@ -228,6 +229,7 @@ public: // should be protected, but some old compilers complain otherwise
     RTSPServer& fOurRTSPServer; // same as ::fOurServer
     int& fClientInputSocket; // aliased to ::fOurSocket
     int fClientOutputSocket;
+    ServerTLSState fPOSTSocketTLS; // used only for RTSP-over-HTTPS
     int fAddressFamily;
     Boolean fIsActive;
     unsigned char* fLastCRLF;

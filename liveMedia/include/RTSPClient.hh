@@ -195,8 +195,6 @@ public:
 
   char const* url() const { return fBaseURL; }
 
-  void useTLS() { fTLS.isNeeded = True; }
-
   static unsigned responseBufferSize;
 
 public: // Some compilers complain if this is "private:"
@@ -364,6 +362,9 @@ private:
 
   // Optional support for TLS:
   ClientTLSState fTLS;
+  ClientTLSState fPOSTSocketTLS; // used only for RTSP-over-HTTPS
+  ClientTLSState* fInputTLS;
+  ClientTLSState* fOutputTLS;
   friend class ClientTLSState;
 };
 
