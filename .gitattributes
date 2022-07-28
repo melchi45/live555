@@ -187,3 +187,8 @@ gradlew		eol=lf
 .gitignore	text
 .gitconfig	text
 .gitreview	text
+
+configure	binary
+genMakefiles	binary
+genWindowsMakefiles binary
+genWindowsMakefiles.cmd binary
