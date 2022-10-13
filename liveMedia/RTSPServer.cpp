@@ -158,17 +158,26 @@ UserAuthenticationDatabase* RTSPServer::getAuthenticationDatabaseForCommand(char
   return fAuthDB;
 }
 
-Boolean RTSPServer::specialClientAccessCheck(int /*clientSocket*/, struct sockaddr_storage const& /*clientAddr*/, char const* /*urlSuffix*/) {
+Boolean RTSPServer::specialClientAccessCheck(int /*clientSocket*/,
+					     struct sockaddr_storage const& /*clientAddr*/,
+					     char const* /*urlSuffix*/) {
   // default implementation
   return True;
 }
 
-Boolean RTSPServer::specialClientUserAccessCheck(int /*clientSocket*/, struct sockaddr_storage const& /*clientAddr*/,
+Boolean RTSPServer::specialClientUserAccessCheck(int /*clientSocket*/,
+						 struct sockaddr_storage const& /*clientAddr*/,
 						 char const* /*urlSuffix*/, char const * /*username*/) {
   // default implementation; no further access restrictions:
   return True;
 }
 
+void RTSPServer
+::specialHandlingOfAuthenticationFailure(int /*clientSocket*/,
+					 struct sockaddr_storage const& /*clientAddr*/,
+					 char const* /*urlSuffix*/) {
+  // default implementation: do nothing
+}
 
 RTSPServer::RTSPServer(UsageEnvironment& env,
 		       int ourSocketIPv4, int ourSocketIPv6, Port ourPort,
@@ -1134,6 +1143,7 @@ Boolean RTSPServer::RTSPClientConnection
   
   // If we get here, we failed to authenticate the user.
   // Send back a "401 Unauthorized" response, with a new random nonce:
+  Boolean isInitial401 = fCurrentAuthenticator.nonce() == NULL;
   fCurrentAuthenticator.setRealmAndRandomNonce(authDB->realm());
   snprintf((char*)fResponseBuffer, sizeof fResponseBuffer,
 	   "RTSP/1.0 401 Unauthorized\r\n"
@@ -1143,6 +1153,9 @@ Boolean RTSPServer::RTSPClientConnection
 	   fCurrentCSeq,
 	   dateHeader(),
 	   fCurrentAuthenticator.realm(), fCurrentAuthenticator.nonce());
+  if (!isInitial401) { // this is an actual authentication failure
+    fOurRTSPServer.specialHandlingOfAuthenticationFailure(fClientInputSocket, fClientAddr, urlSuffix);
+  }
   return False;
 }
 
