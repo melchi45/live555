@@ -101,6 +101,7 @@ jobs:
         .\bootstrap-vcpkg.bat
         .\vcpkg.exe --triplet x86-windows-static integrate install
         .\vcpkg.exe install openssl:x86-windows-static
+        .\vcpkg.exe install openssl-windows:x86-windows-static
         set OPENSSL_ROOT_DIR="./installed/x86-windows-static"
 
 
@@ -215,6 +216,7 @@ jobs:
         .\bootstrap-vcpkg.bat
         .\vcpkg.exe integrate install
         .\vcpkg.exe install openssl:x64-windows-static
+        .\vcpkg.exe install openssl-windows:x64-windows-static
         set OPENSSL_ROOT_DIR="./installed/x64-windows-static"
 
 
