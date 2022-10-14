@@ -243,10 +243,9 @@ jobs:
         run: |
           git clone --depth 1 https://github.com/Microsoft/vcpkg.git
           cd vcpkg
-          git reset --hard c2e09f8ddb8a4abd05cacdd966e92a7eb3e79927
           .\bootstrap-vcpkg.bat
           .\vcpkg.exe integrate install
-          .\vcpkg.exe install openssl-windows:x64-windows
+          .\vcpkg.exe install openssl:x64-windows
           set OPENSSL_ROOT_DIR="./installed/x64-windows"
       - name: Configure CMake
         # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
