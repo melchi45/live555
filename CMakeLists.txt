@@ -69,7 +69,7 @@ if ( LIVE555_ENABLE_OPENSSL )
     set(EMSCRIPTEN_ROOT_PATH "$ENV{SYSROOT}")
     if(WIN32)
       find_package(OpenSSL REQUIRED COMPONENTS Crypto SSL)
-      target_link_libraries(live555_cxx_flags PRIVATE
+      target_link_libraries(live555_cxx_flags INTERFACE
          OpenSSL::SSL
          OpenSSL::Crypto
       )
