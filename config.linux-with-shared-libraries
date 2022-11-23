@@ -18,9 +18,9 @@ libUsageEnvironment_VERSION_REVISION=0
 libUsageEnvironment_VERSION_AGE=1
 libUsageEnvironment_LIB_SUFFIX=so.$(shell expr $(libUsageEnvironment_VERSION_CURRENT) - $(libUsageEnvironment_VERSION_AGE)).$(libUsageEnvironment_VERSION_AGE).$(libUsageEnvironment_VERSION_REVISION)
 
-libgroupsock_VERSION_CURRENT=30
+libgroupsock_VERSION_CURRENT=31
 libgroupsock_VERSION_REVISION=10
-libgroupsock_VERSION_AGE=0
+libgroupsock_VERSION_AGE=1
 libgroupsock_LIB_SUFFIX=so.$(shell expr $(libgroupsock_VERSION_CURRENT) - $(libgroupsock_VERSION_AGE)).$(libgroupsock_VERSION_AGE).$(libgroupsock_VERSION_REVISION)
 #####
 

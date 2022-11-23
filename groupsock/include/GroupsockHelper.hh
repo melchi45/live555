@@ -88,6 +88,7 @@ Boolean weHaveAnIPAddress(UsageEnvironment& env);
 // are INADDR_ANY (i.e., 0), specifying the default interface.)
 extern ipv4AddressBits SendingInterfaceAddr;
 extern ipv4AddressBits ReceivingInterfaceAddr;
+extern in6_addr ReceivingInterfaceAddr6;
 
 // Allocates a randomly-chosen IPv4 SSM (multicast) address:
 ipv4AddressBits chooseRandomIPv4SSMAddress(UsageEnvironment& env);
@@ -110,10 +111,11 @@ char const* timestampString();
     var.sin_addr.s_addr = (adr);\
     var.sin_port = (prt);\
     SET_SOCKADDR_SIN_LEN(var);
-#define MAKE_SOCKADDR_IN6(var,prt) /*adr,prt must be in network order*/\
+#define MAKE_SOCKADDR_IN6(var,adr,prt) /*adr,prt must be in network order*/\
     struct sockaddr_in6 var;\
     memset(&var, 0, sizeof var);\
     var.sin6_family = AF_INET6;\
+    var.sin6_addr=adr;\
     var.sin6_port = (prt);\
     SET_SOCKADDR_SIN6_LEN(var);
 
