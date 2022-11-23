@@ -217,8 +217,11 @@ int main(int argc, char** argv) {
       struct sockaddr_storage interfaceAddress;
 
       copyAddress(interfaceAddress, addresses.firstAddress());
-      if (interfaceAddress.ss_family == AF_INET) { // later, support IPv6 also
+      if (interfaceAddress.ss_family == AF_INET) {
 	ReceivingInterfaceAddr = ((sockaddr_in&)interfaceAddress).sin_addr.s_addr;
+      }
+      if (interfaceAddress.ss_family == AF_INET6) {
+    ReceivingInterfaceAddr6 = ((sockaddr_in6&)interfaceAddress).sin6_addr;
       }
       ++argv; --argc;
       break;
