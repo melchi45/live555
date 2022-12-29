@@ -244,6 +244,9 @@ if(LIVE555_MONOLITH_BUILD)
         $<BUILD_INTERFACE:${live555_SOURCE_DIR}/liveMedia/include>
         $<BUILD_INTERFACE:${live555_SOURCE_DIR}/EpollTaskScheduler/include>
     )
+    if(MSVC)
+        target_link_libraries(live555 INTERFACE ws2_32)
+    endif()
    set ( WS_LINK_LIBRARIES "" )
    if ( WIN32 )
       list ( APPEND WS_LINK_LIBRARIES
