@@ -230,7 +230,20 @@ endif()
 if(LIVE555_MONOLITH_BUILD)
    message(STATUS "Shared library")
    
-   add_library(live555 SHARED dummy.cpp)
+    add_library(live555 SHARED 
+        $<TARGET_OBJECTS:UsageEnvironment> 
+        $<TARGET_OBJECTS:groupsock>
+        $<TARGET_OBJECTS:BasicUsageEnvironment>
+        $<TARGET_OBJECTS:liveMedia>
+        $<TARGET_OBJECTS:EpollTaskScheduler>
+    )
+    target_include_directories(live555 INTERFACE
+        $<TARGET_PROPERTY:UsageEnvironment,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:groupsock,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:BasicUsageEnvironment,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:liveMedia,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:EpollTaskScheduler,INTERFACE_INCLUDE_DIRECTORIES>
+    )
    set ( WS_LINK_LIBRARIES "" )
    if ( WIN32 )
       list ( APPEND WS_LINK_LIBRARIES
@@ -238,14 +251,9 @@ if(LIVE555_MONOLITH_BUILD)
       )
       set(LIB_EXTENSION ".dll")
    endif ()
-   target_link_libraries(live555 PUBLIC
-      UsageEnvironment
-      groupsock
-      BasicUsageEnvironment
-      liveMedia
-   )
    if(TARGET EpollTaskScheduler)
-      target_link_libraries(live555 PUBLIC EpollTaskScheduler)
+      target_link_libraries(live555 INTERFACE
+          $<TARGET_PROPERTY:EpollTaskScheduler,INTERFACE_INCLUDE_DIRECTORIES>)
       add_library(live555::EpollTaskScheduler ALIAS EpollTaskScheduler)
    endif()
    add_library(live555::live555 ALIAS live555)
