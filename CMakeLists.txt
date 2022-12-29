@@ -282,6 +282,15 @@ else()
     endif()
 endif()
 
+if ( LIVE555_MONOLITH_BUILD )
+    if ( MSVC )
+        target_compile_definitions(live555 INTERFACE LIVEMEDIA_API=__declspec\(dllimport\))
+    else ()
+        target_compile_definitions(live555 INTERFACE LIVEMEDIA_API=)
+    endif ()
+else ()
+    target_compile_definitions(live555 INTERFACE LIVEMEDIA_API=)
+endif ()
 
 # Installation stuff
 set(config_version_file ${CMAKE_CURRENT_BINARY_DIR}/live555ConfigVersion.cmake)
