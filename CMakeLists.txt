@@ -238,11 +238,11 @@ if(LIVE555_MONOLITH_BUILD)
         $<TARGET_OBJECTS:EpollTaskScheduler>
     )
     target_include_directories(live555 INTERFACE
-        $<TARGET_PROPERTY:UsageEnvironment,INTERFACE_INCLUDE_DIRECTORIES>
-        $<TARGET_PROPERTY:groupsock,INTERFACE_INCLUDE_DIRECTORIES>
-        $<TARGET_PROPERTY:BasicUsageEnvironment,INTERFACE_INCLUDE_DIRECTORIES>
-        $<TARGET_PROPERTY:liveMedia,INTERFACE_INCLUDE_DIRECTORIES>
-        $<TARGET_PROPERTY:EpollTaskScheduler,INTERFACE_INCLUDE_DIRECTORIES>
+        $<BUILD_INTERFACE:${live555_SOURCE_DIR}/UsageEnvironment/include>
+        $<BUILD_INTERFACE:${live555_SOURCE_DIR}/groupsock/include>
+        $<BUILD_INTERFACE:${live555_SOURCE_DIR}/BasicUsageEnvironment/include>
+        $<BUILD_INTERFACE:${live555_SOURCE_DIR}/liveMedia/include>
+        $<BUILD_INTERFACE:${live555_SOURCE_DIR}/EpollTaskScheduler/include>
     )
    set ( WS_LINK_LIBRARIES "" )
    if ( WIN32 )
