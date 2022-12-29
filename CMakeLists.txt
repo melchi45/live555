@@ -253,7 +253,7 @@ if(LIVE555_MONOLITH_BUILD)
    endif ()
    if(TARGET EpollTaskScheduler)
       target_link_libraries(live555 INTERFACE
-          $<TARGET_PROPERTY:EpollTaskScheduler,INTERFACE_INCLUDE_DIRECTORIES>)
+      $<BUILD_INTERFACE:${live555_SOURCE_DIR}/EpollTaskScheduler/include>)
       add_library(live555::EpollTaskScheduler ALIAS EpollTaskScheduler)
    endif()
    add_library(live555::live555 ALIAS live555)
