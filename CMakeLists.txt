@@ -230,7 +230,23 @@ endif()
 if(LIVE555_MONOLITH_BUILD)
    message(STATUS "Shared library")
    
-   add_library(live555 SHARED dummy.cpp)
+    add_library(live555 SHARED 
+        $<TARGET_OBJECTS:UsageEnvironment> 
+        $<TARGET_OBJECTS:groupsock>
+        $<TARGET_OBJECTS:BasicUsageEnvironment>
+        $<TARGET_OBJECTS:liveMedia>
+        $<TARGET_OBJECTS:EpollTaskScheduler>
+    )
+    target_include_directories(live555 INTERFACE
+        $<BUILD_INTERFACE:${live555_SOURCE_DIR}/UsageEnvironment/include>
+        $<BUILD_INTERFACE:${live555_SOURCE_DIR}/groupsock/include>
+        $<BUILD_INTERFACE:${live555_SOURCE_DIR}/BasicUsageEnvironment/include>
+        $<BUILD_INTERFACE:${live555_SOURCE_DIR}/liveMedia/include>
+        $<BUILD_INTERFACE:${live555_SOURCE_DIR}/EpollTaskScheduler/include>
+    )
+    if(MSVC)
+        target_link_libraries(live555 PUBLIC ws2_32)
+    endif()
    set ( WS_LINK_LIBRARIES "" )
    if ( WIN32 )
       list ( APPEND WS_LINK_LIBRARIES
@@ -238,14 +254,11 @@ if(LIVE555_MONOLITH_BUILD)
       )
       set(LIB_EXTENSION ".dll")
    endif ()
-   target_link_libraries(live555 PUBLIC
-      UsageEnvironment
-      groupsock
-      BasicUsageEnvironment
-      liveMedia
-   )
    if(TARGET EpollTaskScheduler)
-      target_link_libraries(live555 PUBLIC EpollTaskScheduler)
+      target_link_libraries(live555 INTERFACE
+          $<TARGET_OBJECTS:EpollTaskScheduler>)
+      target_include_directories(live555 INTERFACE
+          $<BUILD_INTERFACE:${live555_SOURCE_DIR}/EpollTaskScheduler/include>)
       add_library(live555::EpollTaskScheduler ALIAS EpollTaskScheduler)
    endif()
    add_library(live555::live555 ALIAS live555)
@@ -274,6 +287,15 @@ else()
     endif()
 endif()
 
+if ( LIVE555_MONOLITH_BUILD )
+    if ( MSVC )
+        target_compile_definitions(live555 INTERFACE LIVEMEDIA_API=__declspec\(dllimport\))
+    else ()
+        target_compile_definitions(live555 INTERFACE LIVEMEDIA_API=)
+    endif ()
+else ()
+    target_compile_definitions(live555 INTERFACE LIVEMEDIA_API=)
+endif ()
 
 # Installation stuff
 set(config_version_file ${CMAKE_CURRENT_BINARY_DIR}/live555ConfigVersion.cmake)
