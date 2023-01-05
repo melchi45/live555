@@ -70,7 +70,7 @@ jobs:
     - name: Build Static Library
       # Build your program with the given configuration
       run: 
-        cmake --build ${{github.workspace}}/static --config ${{env.BUILD_TYPE}} --target ${{env.OUT_PATH}}
+        cmake --build ${{github.workspace}}/static --config ${{env.BUILD_TYPE}} --target ${{env.OUT_PATH}} -j20
         
     - name: Test Static
       working-directory: ${{github.workspace}}/static
@@ -155,7 +155,7 @@ jobs:
     - name: Build Shared Library
       # Build your program with the given configuration
       run: 
-        cmake --build ${{github.workspace}}/shared --config ${{env.BUILD_TYPE}} --target ${{env.OUT_PATH}}
+        cmake --build ${{github.workspace}}/shared --config ${{env.BUILD_TYPE}} --target ${{env.OUT_PATH}} -j20
         
     - name: Test Shared
       working-directory: ${{github.workspace}}/shared
@@ -255,12 +255,12 @@ jobs:
         run: 
           #cmake -B ${{github.workspace}}/windows -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{env.OUT_PATH}} -DLIVE555_ENABLE_OPENSSL=OFF -DLIVE555_BUILD_EXAMPLES=OFF -DCMAKE_TOOLCHAIN_FILE="./vcpkg/scripts/buildsystems/vcpkg.cmake"          
           #cmake -B ${{github.workspace}}/windows -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{env.OUT_PATH}} -DLIVE555_ENABLE_OPENSSL=ON -DLIVE555_BUILD_EXAMPLES=ON -DCMAKE_TOOLCHAIN_FILE="./vcpkg/scripts/buildsystems/vcpkg.cmake" -DCMAKE_PREFIX_PATH="./vcpkg/installed/x64-windows" -DOPENSSL_ROOT_DIR="./vcpkg/installed/x64-windows" -DVCPKG_TARGET_TRIPLET=x64-windows-static
-          cmake -B ${{github.workspace}}/windows -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{env.OUT_PATH}} -DLIVE555_ENABLE_OPENSSL=OFF -DLIVE555_BUILD_EXAMPLES=OFF -DCMAKE_TOOLCHAIN_FILE="./vcpkg/scripts/buildsystems/vcpkg.cmake"
+          cmake -B ${{github.workspace}}/windows -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{env.OUT_PATH}} -DLIVE555_ENABLE_OPENSSL=ON -DLIVE555_BUILD_EXAMPLES=OFF -DCMAKE_TOOLCHAIN_FILE="./vcpkg/scripts/buildsystems/vcpkg.cmake"
         
       - name: Build
         # Build your program with the given configuration
         run: 
-          cmake --build ${{github.workspace}}/windows --config ${{env.BUILD_TYPE}} --target ${{env.OUT_PATH}}
+          cmake --build ${{github.workspace}}/windows --config ${{env.BUILD_TYPE}} --target ${{env.OUT_PATH}} -j20
 
       - name: create-archive
         id: create_archive
@@ -341,7 +341,7 @@ jobs:
       - name: Build
         # Build your program with the given configuration
         run: 
-          cmake --build ${{github.workspace}}/windows --config ${{env.BUILD_TYPE}} --target ${{env.OUT_PATH}}
+          cmake --build ${{github.workspace}}/windows --config ${{env.BUILD_TYPE}} --target ${{env.OUT_PATH}} -j20
 
       - name: create-archive
         id: create_archive
