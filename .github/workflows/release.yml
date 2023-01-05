@@ -346,7 +346,7 @@ jobs:
       - name: create-archive
         id: create_archive
         run: 
-          powershell Compress-7Zip ${{env.OUT_PATH}} -ArchiveFileName ${{env.ARCHIVE_NAME}}_sharded_win64.zip -Format Zip
+          powershell Compress-7Zip ${{env.OUT_PATH}} -ArchiveFileName ${{env.ARCHIVE_NAME}}_shared_win64.zip -Format Zip
 
 #       - name: create-release
 #         id: create_release
