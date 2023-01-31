@@ -24,6 +24,14 @@ target_include_directories(groupsock
         $<BUILD_INTERFACE:${live555_SOURCE_DIR}/liveMedia/include>
 )
 
+message(STATUS "groupsock noti.:")
+message(STATUS "If for some reason you wish to use the deprecated \"gethostbyname()\" function instead of
+   \"getaddrinfo()\", uncomment the following this option: -DUSE_DEPRECATED_GETHOSTBYNAME=TRUE")
+if ( USE_DEPRECATED_GETHOSTBYNAME )
+    target_compile_definitions(groupsock PRIVATE USE_GETHOSTBYNAME)
+    message("   USE_DEPRECATED_GETHOSTBYNAME = ${USE_DEPRECATED_GETHOSTBYNAME}")
+endif( USE_DEPRECATED_GETHOSTBYNAME )
+
 if ( LIVE555_MONOLITH_BUILD )
     message(STATUS "build monolith library on groupsock.")
     if ( MSVC )
