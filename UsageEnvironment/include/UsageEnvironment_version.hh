@@ -14,12 +14,12 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 **********/
 // Version information for the "UsageEnvironment" library
-// Copyright (c) 1996-2022 Live Networks, Inc.  All rights reserved.
+// Copyright (c) 1996-2023 Live Networks, Inc.  All rights reserved.
 
 #ifndef _USAGEENVIRONMENT_VERSION_HH
 #define _USAGEENVIRONMENT_VERSION_HH
 
-#define USAGEENVIRONMENT_LIBRARY_VERSION_STRING	"2022.12.01"
-#define USAGEENVIRONMENT_LIBRARY_VERSION_INT		1669852800
+#define USAGEENVIRONMENT_LIBRARY_VERSION_STRING	"2023.01.19"
+#define USAGEENVIRONMENT_LIBRARY_VERSION_INT		1674086400
 
 #endif
