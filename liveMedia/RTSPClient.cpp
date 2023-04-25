@@ -2029,7 +2029,7 @@ int RTSPClient::write(const char* data, unsigned count) {
       if (fOutputTLS->isNeeded) {
 	return fOutputTLS->write(data, count);
       } else {
-	return send(fOutputSocketNum, data, count, 0);
+	return send(fOutputSocketNum, data, count, MSG_NOSIGNAL);
       }
 }
 
