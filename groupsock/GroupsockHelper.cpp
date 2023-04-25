@@ -449,7 +449,7 @@ Boolean writeSocket(UsageEnvironment& env,
 		    unsigned char* buffer, unsigned bufferSize) {
   do {
     SOCKLEN_T dest_len = addressSize(addressAndPort);
-    int bytesSent = sendto(socket, (char*)buffer, bufferSize, 0,
+    int bytesSent = sendto(socket, (char*)buffer, bufferSize, MSG_NOSIGNAL,
 			   (struct sockaddr const*)&addressAndPort, dest_len);
     if (bytesSent != (int)bufferSize) {
       char tmpBuf[100];

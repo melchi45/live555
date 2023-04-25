@@ -25,6 +25,10 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include "NetAddress.hh"
 #endif
 
+#ifndef MSG_NOSIGNAL
+#define MSG_NOSIGNAL 0
+#endif
+
 LIVEMEDIA_API int setupDatagramSocket(UsageEnvironment& env, Port port, int domain);
 LIVEMEDIA_API int setupStreamSocket(UsageEnvironment& env, Port port, int domain,
 		      Boolean makeNonBlocking = True, Boolean setKeepAlive = False);

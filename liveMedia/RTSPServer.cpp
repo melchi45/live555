@@ -985,7 +985,7 @@ void RTSPServer::RTSPClientConnection::handleRequestBytes(int newBytesRead) {
     if (fOutputTLS->isNeeded) {
         fOutputTLS->write((char const*)fResponseBuffer, numBytesToWrite);
     } else {
-        send(fClientOutputSocket, (char const*)fResponseBuffer, numBytesToWrite, 0);
+        send(fClientOutputSocket, (char const*)fResponseBuffer, numBytesToWrite, MSG_NOSIGNAL);
    }
     
     if (playAfterSetup) {
