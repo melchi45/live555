@@ -45,7 +45,7 @@ public:
   Boolean processOutgoingSRTPPacket(u_int8_t* buffer, unsigned inPacketSize,
 				    unsigned& outPacketSize);
   Boolean processOutgoingSRTCPPacket(u_int8_t* buffer, unsigned inPacketSize,
-				      unsigned& outPacketSize);
+				     unsigned& outPacketSize);
 
 #ifndef NO_OPENSSL
 private:

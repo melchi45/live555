@@ -65,7 +65,6 @@ public:
 
   unsigned numMembers() const;
   unsigned totSessionBW() const { return fTotSessionBW; }
-
   void setupForSRTCP();
   
   void setByeHandler(TaskFunc* handlerTask, void* clientData,
