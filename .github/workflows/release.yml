@@ -206,6 +206,7 @@ jobs:
         upload_url: ${{ needs.create_release.outputs.upload_url }}
         asset_path: checksum_shared.txt
         asset_name: checksum_shared.txt
+        asset_content_type: text/plain
         
   build_windows_static:
     name: Windows Static Build
