@@ -109,35 +109,32 @@ void EpollTaskScheduler::SingleStep(unsigned maxDelayTime) {
 
   // Also handle any newly-triggered event (Note that we do this *after* calling a socket handler,
   // in case the triggered event handler modifies The set of readable sockets.)
-  if (fTriggersAwaitingHandling != 0) {
-    if (fTriggersAwaitingHandling == fLastUsedTriggerMask) {
-      // Common-case optimization for a single event trigger:
-      fTriggersAwaitingHandling &=~ fLastUsedTriggerMask;
-      if (fTriggeredEventHandlers[fLastUsedTriggerNum] != NULL) {
-    (*fTriggeredEventHandlers[fLastUsedTriggerNum])(fTriggeredEventClientDatas[fLastUsedTriggerNum]);
+  if (fEventTriggersAreBeingUsed) {
+    // Look for an event trigger that needs handling (making sure that we make forward progress through all possible triggers):
+    unsigned i = fLastUsedTriggerNum;
+    EventTriggerId mask = fLastUsedTriggerMask;
+
+    do {
+      i = (i+1)%MAX_NUM_EVENT_TRIGGERS;
+      mask >>= 1;
+      if (mask == 0) mask = EVENT_TRIGGER_ID_HIGH_BIT;
+
+#ifndef NO_STD_LIB
+      if (fTriggersAwaitingHandling[i].test()) {
+	      fTriggersAwaitingHandling[i].clear();
+#else
+      if (fTriggersAwaitingHandling[i]) {
+	      fTriggersAwaitingHandling[i] = False;
+#endif
+        if (fTriggeredEventHandlers[i] != NULL) {
+          (*fTriggeredEventHandlers[i])(fTriggeredEventClientDatas[i]);
+        }
+
+        fLastUsedTriggerMask = mask;
+        fLastUsedTriggerNum = i;
+        break;
       }
-    } else {
-      // Look for an event trigger that needs handling (making sure that we make forward progress through all possible triggers):
-      unsigned i = fLastUsedTriggerNum;
-      EventTriggerId mask = fLastUsedTriggerMask;
-
-      do {
-    i = (i+1)%MAX_NUM_EVENT_TRIGGERS;
-    mask >>= 1;
-    if (mask == 0) mask = 0x80000000;
-
-    if ((fTriggersAwaitingHandling&mask) != 0) {
-      fTriggersAwaitingHandling &=~ mask;
-      if (fTriggeredEventHandlers[i] != NULL) {
-        (*fTriggeredEventHandlers[i])(fTriggeredEventClientDatas[i]);
-      }
-
-      fLastUsedTriggerMask = mask;
-      fLastUsedTriggerNum = i;
-      break;
-    }
-      } while (i != fLastUsedTriggerNum);
-    }
+    } while (i != fLastUsedTriggerNum);
   }
 
   // Also handle any delayed event that may have come due.
