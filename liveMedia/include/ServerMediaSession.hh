@@ -165,7 +165,7 @@ public:
   virtual float getCurrentNPT(void* streamToken);
   virtual FramedSource* getStreamSource(void* streamToken);
   virtual void getRTPSinkandRTCP(void* streamToken,
-				 RTPSink const*& rtpSink, RTCPInstance const*& rtcp) = 0;
+				 RTPSink*& rtpSink, RTCPInstance*& rtcp) = 0;
      // Returns pointers to the "RTPSink" and "RTCPInstance" objects for "streamToken".
      // (This can be useful if you want to get the associated 'Groupsock' objects, for example.)
      // You must not delete these objects, or start/stop playing them; instead, that is done

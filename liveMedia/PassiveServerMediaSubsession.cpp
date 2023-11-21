@@ -222,7 +222,7 @@ float PassiveServerMediaSubsession::getCurrentNPT(void* /*streamToken*/) {
 
 void PassiveServerMediaSubsession
 ::getRTPSinkandRTCP(void* /*streamToken*/,
-		    RTPSink const*& rtpSink, RTCPInstance const*& rtcp) {
+		    RTPSink*& rtpSink, RTCPInstance*& rtcp) {
   rtpSink = &fRTPSink;
   rtcp = fRTCPInstance;
 }
