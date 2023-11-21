@@ -123,9 +123,9 @@ void BasicTaskScheduler0::deleteEventTrigger(EventTriggerId eventTriggerId) {
   for (unsigned i = 0; i < MAX_NUM_EVENT_TRIGGERS; ++i) {
     if ((eventTriggerId&mask) != 0) {
 #ifndef NO_STD_LIB
-      fTriggersAwaitingHandling[fLastUsedTriggerNum].clear();
+      fTriggersAwaitingHandling[i].clear();
 #else
-      fTriggersAwaitingHandling[fLastUsedTriggerNum] = False;
+      fTriggersAwaitingHandling[i] = False;
 #endif
       fTriggeredEventHandlers[i] = NULL;
       fTriggeredEventClientDatas[i] = NULL;

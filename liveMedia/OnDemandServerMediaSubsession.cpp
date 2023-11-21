@@ -330,7 +330,7 @@ FramedSource* OnDemandServerMediaSubsession::getStreamSource(void* streamToken) 
 
 void OnDemandServerMediaSubsession
 ::getRTPSinkandRTCP(void* streamToken,
-		    RTPSink const*& rtpSink, RTCPInstance const*& rtcp) {
+		    RTPSink*& rtpSink, RTCPInstance*& rtcp) {
   if (streamToken == NULL) {
     rtpSink = NULL;
     rtcp = NULL;
