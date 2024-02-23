@@ -102,7 +102,7 @@ void RTCPMemberDatabase::reapOldMembers(unsigned threshold) {
 #ifdef DEBUG
         fprintf(stderr, "reap: removing SSRC 0x%x\n", oldSSRC);
 #endif
-	fOurRTCPInstance.removeSSRC(oldSSRC, True);
+	fOurRTCPInstance.removeSSRC(oldSSRC, False/*keep stats around*/);
     }
   } while (foundOldMember);
 }
