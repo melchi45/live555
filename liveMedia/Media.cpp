@@ -21,6 +21,11 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include "Media.hh"
 #include "HashTable.hh"
 
+////////// library version constants //////////
+
+extern char const* const liveMediaLibraryVersionStr = LIVEMEDIA_LIBRARY_VERSION_STRING;
+extern int const liveMediaLibraryVersionInt = LIVEMEDIA_LIBRARY_VERSION_INT;
+
 ////////// Medium //////////
 
 Medium::Medium(UsageEnvironment& env)

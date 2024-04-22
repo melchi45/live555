@@ -20,6 +20,11 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include "BasicUsageEnvironment.hh"
 #include <stdio.h>
 
+////////// library version constants //////////
+
+extern char const* const BasicUsageEnvironmentLibraryVersionStr = BASICUSAGEENVIRONMENT_LIBRARY_VERSION_STRING;
+extern int const BasicUsageEnvironmentLibraryVersionInt = BASICUSAGEENVIRONMENT_LIBRARY_VERSION_INT;
+
 ////////// BasicUsageEnvironment //////////
 
 #if defined(__WIN32__) || defined(_WIN32)

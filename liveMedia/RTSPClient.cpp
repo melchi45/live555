@@ -419,7 +419,6 @@ RTSPClient::RTSPClient(UsageEnvironment& env, char const* rtspURL,
 
   // Set the "User-Agent:" header to use in each request:
   char const* const libName = "LIVE555 Streaming Media v";
-  char const* const libVersionStr = LIVEMEDIA_LIBRARY_VERSION_STRING;
   char const* libPrefix; char const* libSuffix;
   if (applicationName == NULL || applicationName[0] == '\0') {
     applicationName = libPrefix = libSuffix = "";
@@ -428,9 +427,9 @@ RTSPClient::RTSPClient(UsageEnvironment& env, char const* rtspURL,
     libSuffix = ")";
   }
   unsigned userAgentNameSize
-    = strlen(applicationName) + strlen(libPrefix) + strlen(libName) + strlen(libVersionStr) + strlen(libSuffix) + 1;
+    = strlen(applicationName) + strlen(libPrefix) + strlen(libName) + strlen(liveMediaLibraryVersionStr) + strlen(libSuffix) + 1;
   char* userAgentName = new char[userAgentNameSize];
-  sprintf(userAgentName, "%s%s%s%s%s", applicationName, libPrefix, libName, libVersionStr, libSuffix);
+  sprintf(userAgentName, "%s%s%s%s%s", applicationName, libPrefix, libName, liveMediaLibraryVersionStr, libSuffix);
   setUserAgentString(userAgentName);
   delete[] userAgentName;
 }
