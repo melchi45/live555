@@ -257,7 +257,8 @@ Boolean MPEG2TransportStreamFramer::updateTSPacketDurationEstimate(unsigned char
 
     if (fTSPacketDurationEstimate == 0.0) { // we've just started
       fTSPacketDurationEstimate = durationPerPacket;
-    } else if (discontinuity_indicator == 0 && durationPerPacket >= 0.0) {
+    } else if (discontinuity_indicator == 0 && durationPerPacket >= 0.0
+	       && durationPerPacket < 2*fTSPacketDurationEstimate) {
       fTSPacketDurationEstimate
 	= durationPerPacket*NEW_DURATION_WEIGHT
 	+ fTSPacketDurationEstimate*(1-NEW_DURATION_WEIGHT);

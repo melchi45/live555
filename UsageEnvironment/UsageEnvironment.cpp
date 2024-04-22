@@ -19,6 +19,13 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 #include "UsageEnvironment.hh"
 
+////////// library version constants //////////
+
+extern char const* const UsageEnvironmentLibraryVersionStr = USAGEENVIRONMENT_LIBRARY_VERSION_STRING;
+extern int const UsageEnvironmentLibraryVersionInt = USAGEENVIRONMENT_LIBRARY_VERSION_INT;
+
+////////// UsageEnvironment //////////
+
 Boolean UsageEnvironment::reclaim() {
   // We delete ourselves only if we have no remainining state:
   if (liveMediaPriv == NULL && groupsockPriv == NULL) {

@@ -228,7 +228,7 @@ Boolean ServerTLSState::setup(int socketNum) {
 
     if (SSL_CTX_set_ecdh_auto(fCtx, 1) != 1) break;
 
-    if (SSL_CTX_use_certificate_file(fCtx, fCertificateFileName, SSL_FILETYPE_PEM) != 1) break;
+    if (SSL_CTX_use_certificate_chain_file(fCtx, fCertificateFileName) != 1) break;
 
     if (SSL_CTX_use_PrivateKey_file(fCtx, fPrivateKeyFileName, SSL_FILETYPE_PEM) != 1) break;
 

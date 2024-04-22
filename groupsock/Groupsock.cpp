@@ -25,6 +25,11 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #endif
 #include <stdio.h>
 
+////////// library version constants //////////
+
+extern char const* const groupsockLibraryVersionStr = GROUPSOCK_LIBRARY_VERSION_STRING;
+extern int const groupsockLibraryVersionInt = GROUPSOCK_LIBRARY_VERSION_INT;
+
 ///////// OutputSocket //////////
 
 OutputSocket::OutputSocket(UsageEnvironment& env, int family)
