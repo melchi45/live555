@@ -151,6 +151,8 @@ private:
                           _atom(h263);
                           _atom(avc1);
                               _atom(avcC);
+                          _atom(hvc1);
+                              _atom(hvcC);
                           _atom(mp4v);
                           _atom(rtp);
                               _atom(tims);
