@@ -571,13 +571,17 @@ void StreamState
   }
 
   if (!fAreCurrentlyPlaying && fMediaSource != NULL) {
-    if (fRTPSink != NULL) {
-      fRTPSink->startPlaying(*fMediaSource, afterPlayingStreamState, this);
-      fAreCurrentlyPlaying = True;
-    } else if (fUDPSink != NULL) {
-      fUDPSink->startPlaying(*fMediaSource, afterPlayingStreamState, this);
-      fAreCurrentlyPlaying = True;
+    MediaSink* sink;
+    if (fRTPSink != NULL) { sink = fRTPSink; }
+    else if (fUDPSink != NULL) { sink = fUDPSink; }
+    else return;
+    
+    if (!sink->startPlaying(*fMediaSource, afterPlayingStreamState, this)) {
+      fMediaSource->envir() << "sink->startPlaying() failed: "
+			    << fMediaSource->envir().getResultMsg() << "\n";
+      return;
     }
+    fAreCurrentlyPlaying = True;
   }
 }
 
