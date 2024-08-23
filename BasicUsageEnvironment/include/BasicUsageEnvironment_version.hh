@@ -19,8 +19,8 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #ifndef _BASICUSAGEENVIRONMENT_VERSION_HH
 #define _BASICUSAGEENVIRONMENT_VERSION_HH
 
-#define BASICUSAGEENVIRONMENT_LIBRARY_VERSION_STRING	"2024.06.26"
-#define BASICUSAGEENVIRONMENT_LIBRARY_VERSION_INT		1719360000
+#define BASICUSAGEENVIRONMENT_LIBRARY_VERSION_STRING	"2024.08.01"
+#define BASICUSAGEENVIRONMENT_LIBRARY_VERSION_INT		1722470400
 
 extern char const* const BasicUsageEnvironmentLibraryVersionStr;
 extern int const BasicUsageEnvironmentLibraryVersionInt;
