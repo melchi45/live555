@@ -283,20 +283,38 @@ endif()
 if(LIVE555_MONOLITH_BUILD)
    message(STATUS "Shared library")
    
-    add_library(live555 SHARED 
-        $<TARGET_OBJECTS:UsageEnvironment> 
-        $<TARGET_OBJECTS:groupsock>
-        $<TARGET_OBJECTS:BasicUsageEnvironment>
-        $<TARGET_OBJECTS:liveMedia>
-        $<TARGET_OBJECTS:EpollTaskScheduler>
-    )
-    target_include_directories(live555 INTERFACE
-        $<BUILD_INTERFACE:${live555_SOURCE_DIR}/UsageEnvironment/include>
-        $<BUILD_INTERFACE:${live555_SOURCE_DIR}/groupsock/include>
-        $<BUILD_INTERFACE:${live555_SOURCE_DIR}/BasicUsageEnvironment/include>
-        $<BUILD_INTERFACE:${live555_SOURCE_DIR}/liveMedia/include>
-        $<BUILD_INTERFACE:${live555_SOURCE_DIR}/EpollTaskScheduler/include>
-    )
+
+   if(TARGET EpollTaskScheduler)
+      add_library(live555 SHARED
+         $<TARGET_OBJECTS:UsageEnvironment>
+         $<TARGET_OBJECTS:groupsock>
+         $<TARGET_OBJECTS:BasicUsageEnvironment>
+         $<TARGET_OBJECTS:liveMedia>
+         $<TARGET_OBJECTS:EpollTaskScheduler>
+      )
+      target_include_directories(live555 INTERFACE
+         $<BUILD_INTERFACE:${live555_SOURCE_DIR}/UsageEnvironment/include>
+         $<BUILD_INTERFACE:${live555_SOURCE_DIR}/groupsock/include>
+         $<BUILD_INTERFACE:${live555_SOURCE_DIR}/BasicUsageEnvironment/include>
+         $<BUILD_INTERFACE:${live555_SOURCE_DIR}/liveMedia/include>
+         $<BUILD_INTERFACE:${live555_SOURCE_DIR}/EpollTaskScheduler/include>
+      )
+      add_library(live555::EpollTaskScheduler ALIAS live555)
+   else()
+      add_library(live555 SHARED
+         $<TARGET_OBJECTS:UsageEnvironment>
+         $<TARGET_OBJECTS:groupsock>
+         $<TARGET_OBJECTS:BasicUsageEnvironment>
+         $<TARGET_OBJECTS:liveMedia>
+      )
+      target_include_directories(live555 INTERFACE
+         $<BUILD_INTERFACE:${live555_SOURCE_DIR}/UsageEnvironment/include>
+         $<BUILD_INTERFACE:${live555_SOURCE_DIR}/groupsock/include>
+         $<BUILD_INTERFACE:${live555_SOURCE_DIR}/BasicUsageEnvironment/include>
+         $<BUILD_INTERFACE:${live555_SOURCE_DIR}/liveMedia/include>
+      )
+   endif()
+
     if(MSVC)
         target_link_libraries(live555 PUBLIC ws2_32)
     endif()
@@ -307,13 +325,6 @@ if(LIVE555_MONOLITH_BUILD)
       )
       set(LIB_EXTENSION ".dll")
    endif ()
-   if(TARGET EpollTaskScheduler)
-      target_link_libraries(live555 INTERFACE
-          $<TARGET_OBJECTS:EpollTaskScheduler>)
-      target_include_directories(live555 INTERFACE
-          $<BUILD_INTERFACE:${live555_SOURCE_DIR}/EpollTaskScheduler/include>)
-      add_library(live555::EpollTaskScheduler ALIAS EpollTaskScheduler)
-   endif()
    if(LIVE555_ENABLE_OPENSSL)
       message(STATUS "find package OpenSSL.")
       find_package(OpenSSL REQUIRED COMPONENTS Crypto SSL)
