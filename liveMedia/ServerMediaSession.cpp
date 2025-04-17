@@ -14,7 +14,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 **********/
 // "liveMedia"
-// Copyright (c) 1996-2024 Live Networks, Inc.  All rights reserved.
+// Copyright (c) 1996-2025 Live Networks, Inc.  All rights reserved.
 // A data structure that represents a session that consists of
 // potentially multiple (audio and/or video) sub-sessions
 // (This data structure is used for media *streamers* - i.e., servers.
@@ -359,7 +359,7 @@ void ServerMediaSubsessionIterator::reset() {
 
 ServerMediaSubsession::ServerMediaSubsession(UsageEnvironment& env)
   : Medium(env),
-    fParentSession(NULL), fNext(NULL), fTrackNumber(0), fTrackId(NULL) {
+    fParentSession(NULL), fSRTP_ROC(0), fNext(NULL), fTrackNumber(0), fTrackId(NULL) {
 }
 
 ServerMediaSubsession::~ServerMediaSubsession() {

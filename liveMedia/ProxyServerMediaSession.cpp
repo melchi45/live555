@@ -14,7 +14,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 **********/
 // "liveMedia"
-// Copyright (c) 1996-2024 Live Networks, Inc.  All rights reserved.
+// Copyright (c) 1996-2025 Live Networks, Inc.  All rights reserved.
 // A subclass of "ServerMediaSession" that can be used to create a (unicast) RTSP servers that acts as a 'proxy' for
 // another (unicast or multicast) RTSP/RTP stream.
 // Implementation
@@ -130,12 +130,12 @@ ProxyServerMediaSession::~ProxyServerMediaSession() {
 
   // Then delete our state:
   Medium::close(fClientMediaSession);
-  Medium::close(fProxyRTSPClient);
+  Medium::close(fProxyRTSPClient); fProxyRTSPClient = NULL;
   Medium::close(fPresentationTimeSessionNormalizer);
 }
 
 char const* ProxyServerMediaSession::url() const {
-  return fProxyRTSPClient == NULL ? NULL : fProxyRTSPClient->url();
+  return fProxyRTSPClient == NULL ? "" : fProxyRTSPClient->url();
 }
 
 Groupsock* ProxyServerMediaSession
