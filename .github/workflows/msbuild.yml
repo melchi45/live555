@@ -100,9 +100,11 @@ jobs:
         cd vcpkg
         .\bootstrap-vcpkg.bat
         .\vcpkg.exe --triplet x86-windows-static integrate install
-        .\vcpkg.exe install openssl:x86-windows-static
+        .\vcpkg.exe install openssl:x86-windows
+        # .\vcpkg.exe install openssl:x86-windows-static
         # .\vcpkg.exe install openssl-windows:x86-windows-static
-        set OPENSSL_ROOT_DIR="./installed/x86-windows-static"
+        set OPENSSL_ROOT_DIR="./installed/x86-windows"
+        # set OPENSSL_ROOT_DIR="./installed/x86-windows-static"
 
 
 #     - name: Configure CMake Static Library
@@ -215,9 +217,10 @@ jobs:
         cd vcpkg
         .\bootstrap-vcpkg.bat
         .\vcpkg.exe --triplet x86-windows-static integrate install
-        .\vcpkg.exe install openssl:x86-windows-static
+        .\vcpkg.exe install openssl:x86-windows
+        # .\vcpkg.exe install openssl:x86-windows-static
         # .\vcpkg.exe install openssl-windows:x86-windows
-        set OPENSSL_ROOT_DIR="./installed/x86-windows"
+        # set OPENSSL_ROOT_DIR="./installed/x86-windows"
 
 
 #     - name: Configure CMake Static Library
@@ -331,9 +334,11 @@ jobs:
         cd vcpkg
         .\bootstrap-vcpkg.bat
         .\vcpkg.exe integrate install
-        .\vcpkg.exe install openssl:x64-windows-static
+        .\vcpkg.exe install openssl:x64-windows
+        # .\vcpkg.exe install openssl:x64-windows-static
         # .\vcpkg.exe install openssl-windows:x64-windows-static
-        set OPENSSL_ROOT_DIR="./installed/x64-windows-static"
+        set OPENSSL_ROOT_DIR="./installed/x64-windows"
+        # set OPENSSL_ROOT_DIR="./installed/x64-windows-static"
 
 
 #     - name: Configure CMake Static Library
