@@ -109,17 +109,13 @@ typedef void TaskFunc(void* clientData);
 typedef void* TaskToken;
 typedef u_int32_t EventTriggerId;
 
-<<<<<<< HEAD
-class LIVEMEDIA_API TaskScheduler {
-=======
 #ifndef NO_STD_LIB
 typedef std::atomic_char EventLoopWatchVariable;
 #else
 typedef char volatile EventLoopWatchVariable;
 #endif
 
-class TaskScheduler {
->>>>>>> c51cc11 ([origin] Bump up to 2025.01.17 [116.1.0])
+class LIVEMEDIA_API TaskScheduler {
 public:
   virtual ~TaskScheduler();
 
