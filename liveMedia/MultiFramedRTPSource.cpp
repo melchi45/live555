@@ -358,7 +358,20 @@ BufferedPacket::BufferedPacket()
 }
 
 BufferedPacket::~BufferedPacket() {
-  delete fNextPacket;
+  /////
+  // Replace tail recursion with iteration, in case the compiler isn't smart enough to do this.
+  // I.e., replace:
+  //    delete fNextPacket;
+  // with:
+  BufferedPacket* nextPacket = fNextPacket;
+  while (nextPacket != NULL) {
+    BufferedPacket* tmpPacket = nextPacket;
+    nextPacket = tmpPacket->fNextPacket;
+    tmpPacket->fNextPacket = NULL;
+    delete tmpPacket;
+  }
+  /////
+
   delete[] fBuf;
 }
 
