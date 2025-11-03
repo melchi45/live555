@@ -306,7 +306,12 @@ void GenericMediaServer::ClientConnection::incomingRequestHandler(void* instance
 
 void GenericMediaServer::ClientConnection::incomingRequestHandler() {
   if (fInputTLS->tlsAcceptIsNeeded) { // we need to successfully call fInputTLS->accept() first:
-    if (fInputTLS->accept(fOurSocket) <= 0) return; // either an error, or we need to try again later
+    int tlsAcceptResult = fInputTLS->accept(fOurSocket);
+    if (tlsAcceptResult <= 0) { // either an error, or we need to try again later
+      if (tlsAcceptResult < 0) delete this; // an error; this connection cannot continue
+
+      return;
+    }
 
     fInputTLS->tlsAcceptIsNeeded = False;
     // We can now read data, as usual:

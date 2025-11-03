@@ -158,13 +158,6 @@ UserAuthenticationDatabase* RTSPServer::getAuthenticationDatabaseForCommand(char
   return fAuthDB;
 }
 
-Boolean RTSPServer::specialClientAccessCheck(int /*clientSocket*/,
-					     struct sockaddr_storage const& /*clientAddr*/,
-					     char const* /*urlSuffix*/) {
-  // default implementation
-  return True;
-}
-
 Boolean RTSPServer::specialClientUserAccessCheck(int /*clientSocket*/,
 						 struct sockaddr_storage const& /*clientAddr*/,
 						 char const* /*urlSuffix*/, char const * /*username*/) {
@@ -1083,11 +1076,6 @@ static Boolean parseAuthorizationHeader(char const* buf,
 
 Boolean RTSPServer::RTSPClientConnection
 ::authenticationOK(char const* cmdName, char const* urlSuffix, char const* fullRequestStr) {
-  if (!fOurRTSPServer.specialClientAccessCheck(fClientInputSocket, fClientAddr, urlSuffix)) {
-    setRTSPResponse("401 Unauthorized");
-    return False;
-  }
-  
   // If we weren't set up with an authentication database, we're OK:
   UserAuthenticationDatabase* authDB = fOurRTSPServer.getAuthenticationDatabaseForCommand(cmdName);
   if (authDB == NULL) return True;

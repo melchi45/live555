@@ -30,8 +30,8 @@ static void decodeURL(char* url) {
   char* cursor = url;
   while (*cursor) {
     if ((cursor[0] == '%') &&
-	cursor[1] && isxdigit(cursor[1]) &&
-	cursor[2] && isxdigit(cursor[2])) {
+	cursor[1] && isxdigit((unsigned char)cursor[1]) &&
+	cursor[2] && isxdigit((unsigned char)cursor[2])) {
       // We saw a % followed by 2 hex digits, so we copy the literal hex value into the URL, then advance the cursor past it:
       char hex[3];
       hex[0] = cursor[1];
