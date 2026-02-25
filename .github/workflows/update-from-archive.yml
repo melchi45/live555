@@ -1,0 +1,65 @@
+name: Update from remote archive
+
+on:
+  schedule:
+    - cron: "0 3 * * *"   # Runs daily at 3:00 AM (UTC)
+  workflow_dispatch:      # Also allows manual execution
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout target branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/origin   # Target branch to update
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download archive
+        run: |
+          curl -L "https://download.live555.com/live555-latest.tar.gz" -o live555-latest.tar.gz
+
+      - name: Extract archive
+        run: |
+          mkdir extracted
+          tar -xf live555-latest.tar.gz -C extracted
+
+      - name: Check diff between repo and extracted archive
+        id: diff_check
+        run: |
+          # Get the top-level directory name inside the archive
+          ARCHIVE_ROOT=$(tar -tzf live555-latest.tar.gz | head -1 | cut -f1 -d"/")
+          echo "archive_root=$ARCHIVE_ROOT" >> $GITHUB_OUTPUT
+
+          # Compare extracted archive root directory with current repository
+          if diff -rq --exclude=".git" "extracted/$ARCHIVE_ROOT/" . > /dev/null 2>&1; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "No differences found. Skipping update."
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "Differences detected:"
+            diff -rq --exclude=".git" "extracted/$ARCHIVE_ROOT/" . || true
+          fi
+
+      - name: Copy extracted files into repo
+        if: steps.diff_check.outputs.has_changes == 'true'
+        run: |
+          ARCHIVE_ROOT=${{ steps.diff_check.outputs.archive_root }}
+          rsync -av --delete \
+            --exclude=".git" \
+            --exclude=".github" \
+            "extracted/$ARCHIVE_ROOT/" .
+
+      - name: Commit changes
+        if: steps.diff_check.outputs.has_changes == 'true'
+        run: |
+          git config user.name "melchi45"
+          git config user.email "melchi45@gmail.com"
+          git add .
+          git commit -m "Update from remote archive $(date +'%Y-%m-%d')"
+
+      - name: Push changes
+        if: steps.diff_check.outputs.has_changes == 'true'
+        run: |
+          git push origin feature/origin
