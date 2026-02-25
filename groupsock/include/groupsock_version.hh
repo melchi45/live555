@@ -19,8 +19,8 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #ifndef _GROUPSOCK_VERSION_HH
 #define _GROUPSOCK_VERSION_HH
 
-#define GROUPSOCK_LIBRARY_VERSION_STRING	"2026.01.12"
-#define GROUPSOCK_LIBRARY_VERSION_INT		1768176000
+#define GROUPSOCK_LIBRARY_VERSION_STRING	"2026.02.13"
+#define GROUPSOCK_LIBRARY_VERSION_INT		1770940800
 
 extern char const* const groupsockLibraryVersionStr;
 extern int const groupsockLibraryVersionInt;
