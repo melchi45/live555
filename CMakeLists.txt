@@ -391,42 +391,52 @@ write_basic_package_version_file(${config_version_file}
                                  COMPATIBILITY ExactVersion)
 
 if(LIVE555_BUILD_EXAMPLES)
-   set(bin_files ${CMAKE_CURRENT_BINARY_DIR}/testProgs/MPEG2TransportStreamIndexer
-                 ${CMAKE_CURRENT_BINARY_DIR}/testProgs/mikeyParse
-                 ${CMAKE_CURRENT_BINARY_DIR}/testProgs/openRTSP
-                 ${CMAKE_CURRENT_BINARY_DIR}/testProgs/playSIP
-                 ${CMAKE_CURRENT_BINARY_DIR}/testProgs/registerRTSPStream
-                 ${CMAKE_CURRENT_BINARY_DIR}/testProgs/sapWatch
-                 ${CMAKE_CURRENT_BINARY_DIR}/testProgs/testAMRAudioStreamer
-                 ${CMAKE_CURRENT_BINARY_DIR}/testProgs/testDVVideoStreamer
-                 ${CMAKE_CURRENT_BINARY_DIR}/testProgs/testH264VideoStreamer
-                 ${CMAKE_CURRENT_BINARY_DIR}/testProgs/testH264VideoToHLSSegments
-                 ${CMAKE_CURRENT_BINARY_DIR}/testProgs/testH264VideoToTransportStream
-                 ${CMAKE_CURRENT_BINARY_DIR}/testProgs/testH265VideoStreamer
-                 ${CMAKE_CURRENT_BINARY_DIR}/testProgs/testH265VideoToTransportStream
-                 ${CMAKE_CURRENT_BINARY_DIR}/testProgs/testMKVSplitter
-                 ${CMAKE_CURRENT_BINARY_DIR}/testProgs/testMKVStreamer
-                 ${CMAKE_CURRENT_BINARY_DIR}/testProgs/testMP3Receiver
-                 ${CMAKE_CURRENT_BINARY_DIR}/testProgs/testMP3Streamer
-                 ${CMAKE_CURRENT_BINARY_DIR}/testProgs/testMPEG1or2AudioVideoStreamer
-                 ${CMAKE_CURRENT_BINARY_DIR}/testProgs/testMPEG1or2ProgramToTransportStream
-                 ${CMAKE_CURRENT_BINARY_DIR}/testProgs/testMPEG1or2Splitter
-                 ${CMAKE_CURRENT_BINARY_DIR}/testProgs/testMPEG1or2VideoReceiver
-                 ${CMAKE_CURRENT_BINARY_DIR}/testProgs/testMPEG1or2VideoStreamer
-                 ${CMAKE_CURRENT_BINARY_DIR}/testProgs/testMPEG2TransportReceiver
-                 ${CMAKE_CURRENT_BINARY_DIR}/testProgs/testMPEG2TransportStreamTrickPlay
-                 ${CMAKE_CURRENT_BINARY_DIR}/testProgs/testMPEG2TransportStreamer
-                 ${CMAKE_CURRENT_BINARY_DIR}/testProgs/testMPEG4VideoStreamer
-                 ${CMAKE_CURRENT_BINARY_DIR}/testProgs/testOggStreamer
-                 ${CMAKE_CURRENT_BINARY_DIR}/testProgs/testOnDemandRTSPServer
-                 ${CMAKE_CURRENT_BINARY_DIR}/testProgs/testRTSPClient
-                 ${CMAKE_CURRENT_BINARY_DIR}/testProgs/testRelay
-                 ${CMAKE_CURRENT_BINARY_DIR}/testProgs/testReplicator
-                 ${CMAKE_CURRENT_BINARY_DIR}/testProgs/testWAVAudioStreamer
-                 ${CMAKE_CURRENT_BINARY_DIR}/testProgs/vobStreamer
-                 ${CMAKE_CURRENT_BINARY_DIR}/mediaServer/live555MediaServer
-                 ${CMAKE_CURRENT_BINARY_DIR}/proxyServer/live555ProxyServer
-                 ${CMAKE_CURRENT_BINARY_DIR}/hlsProxy/live555HLSProxy)
+   set(testprogs_targets
+       MPEG2TransportStreamIndexer
+       mikeyParse
+       openRTSP
+       playSIP
+       registerRTSPStream
+       sapWatch
+       testAMRAudioStreamer
+       testDVVideoStreamer
+       testH264VideoStreamer
+       testH264VideoToHLSSegments
+       testH264VideoToTransportStream
+       testH265VideoStreamer
+       testH265VideoToTransportStream
+       testMKVSplitter
+       testMKVStreamer
+       testMP3Receiver
+       testMP3Streamer
+       testMPEG1or2AudioVideoStreamer
+       testMPEG1or2ProgramToTransportStream
+       testMPEG1or2Splitter
+       testMPEG1or2VideoReceiver
+       testMPEG1or2VideoStreamer
+       testMPEG2TransportReceiver
+       testMPEG2TransportStreamTrickPlay
+       testMPEG2TransportStreamer
+       testMPEG4VideoStreamer
+       testOggStreamer
+       testOnDemandRTSPServer
+       testRTSPClient
+       testRelay
+       testReplicator
+       testWAVAudioStreamer
+       vobStreamer
+   )
+   
+   set(bin_files)
+   foreach(target ${testprogs_targets})
+       list(APPEND bin_files ${CMAKE_CURRENT_BINARY_DIR}/testProgs/$<CONFIG>/${target}${CMAKE_EXECUTABLE_SUFFIX})
+   endforeach()
+   
+   list(APPEND bin_files
+       ${CMAKE_CURRENT_BINARY_DIR}/mediaServer/$<CONFIG>/live555MediaServer${CMAKE_EXECUTABLE_SUFFIX}
+       ${CMAKE_CURRENT_BINARY_DIR}/proxyServer/$<CONFIG>/live555ProxyServer${CMAKE_EXECUTABLE_SUFFIX}
+       ${CMAKE_CURRENT_BINARY_DIR}/hlsProxy/$<CONFIG>/live555HLSProxy${CMAKE_EXECUTABLE_SUFFIX}
+   )
 endif()
 
 install(FILES ${config_version_file}
