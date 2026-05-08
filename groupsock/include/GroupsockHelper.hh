@@ -93,6 +93,9 @@ Boolean weHaveAnIPAddress(UsageEnvironment& env);
 extern ipv4AddressBits SendingInterfaceAddr;
 extern ipv4AddressBits ReceivingInterfaceAddr;
 extern in6_addr ReceivingInterfaceAddr6;
+#ifdef SO_BINDTODEVICE
+extern char InterfaceBindToDevice[128];
+#endif
 
 // Allocates a randomly-chosen IPv4 SSM (multicast) address:
 ipv4AddressBits chooseRandomIPv4SSMAddress(UsageEnvironment& env);
