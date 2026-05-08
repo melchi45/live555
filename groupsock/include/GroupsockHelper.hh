@@ -93,6 +93,9 @@ LIVEMEDIA_API Boolean weHaveAnIPAddress(UsageEnvironment& env);
 LIVEMEDIA_API extern ipv4AddressBits SendingInterfaceAddr;
 LIVEMEDIA_API extern ipv4AddressBits ReceivingInterfaceAddr;
 LIVEMEDIA_API extern in6_addr ReceivingInterfaceAddr6;
+#ifdef SO_BINDTODEVICE
+LIVEMEDIA_API extern char InterfaceBindToDevice[128];
+#endif
 
 // Allocates a randomly-chosen IPv4 SSM (multicast) address:
 LIVEMEDIA_API ipv4AddressBits chooseRandomIPv4SSMAddress(UsageEnvironment& env);

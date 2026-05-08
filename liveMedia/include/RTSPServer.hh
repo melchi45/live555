@@ -262,11 +262,11 @@ public: // should be protected, but some old compilers complain otherwise
 					 char const* urlPreSuffix, char const* urlSuffix,
 					 char const* fullRequestStr);
     virtual void handleCmd_TEARDOWN(RTSPClientConnection* ourClientConnection,
-				    ServerMediaSubsession* subsession);
+				    ServerMediaSubsession* subsession, char const* fullRequestStr);
     virtual void handleCmd_PLAY(RTSPClientConnection* ourClientConnection,
 				ServerMediaSubsession* subsession, char const* fullRequestStr);
     virtual void handleCmd_PAUSE(RTSPClientConnection* ourClientConnection,
-				 ServerMediaSubsession* subsession);
+				 ServerMediaSubsession* subsession, char const* fullRequestStr);
     virtual void handleCmd_GET_PARAMETER(RTSPClientConnection* ourClientConnection,
 					 ServerMediaSubsession* subsession, char const* fullRequestStr);
     virtual void handleCmd_SET_PARAMETER(RTSPClientConnection* ourClientConnection,
