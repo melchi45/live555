@@ -36,6 +36,10 @@ function(live555_add_test_executable _target)
     #     # GCC or Clang
     #     add_definitions(-include export.h)
     # endif()
+    install(TARGETS ${_target}
+        RUNTIME DESTINATION bin
+        COMPONENT runtime
+    )
 endfunction()
 
 # if ( WIN32 )

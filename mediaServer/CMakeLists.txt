@@ -43,3 +43,8 @@ endif ()
 #         set ( LIB_EXTENSION a )
 #     endif()
 # endif()
+
+install(TARGETS live555MediaServer
+    RUNTIME DESTINATION bin
+    COMPONENT runtime
+)

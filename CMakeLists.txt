@@ -390,76 +390,16 @@ write_basic_package_version_file(${config_version_file}
                                  VERSION ${live555_VERSION}
                                  COMPATIBILITY ExactVersion)
 
-if(LIVE555_BUILD_EXAMPLES)
-   set(testprogs_targets
-       MPEG2TransportStreamIndexer
-       mikeyParse
-       openRTSP
-       playSIP
-       registerRTSPStream
-       sapWatch
-       testAMRAudioStreamer
-       testDVVideoStreamer
-       testH264VideoStreamer
-       testH264VideoToHLSSegments
-       testH264VideoToTransportStream
-       testH265VideoStreamer
-       testH265VideoToTransportStream
-       testMKVSplitter
-       testMKVStreamer
-       testMP3Receiver
-       testMP3Streamer
-       testMPEG1or2AudioVideoStreamer
-       testMPEG1or2ProgramToTransportStream
-       testMPEG1or2Splitter
-       testMPEG1or2VideoReceiver
-       testMPEG1or2VideoStreamer
-       testMPEG2TransportReceiver
-       testMPEG2TransportStreamTrickPlay
-       testMPEG2TransportStreamer
-       testMPEG4VideoStreamer
-       testOggStreamer
-       testOnDemandRTSPServer
-       testRTSPClient
-       testRelay
-       testReplicator
-       testWAVAudioStreamer
-       vobStreamer
-   )
-   
-   set(bin_files)
-   foreach(target ${testprogs_targets})
-       list(APPEND bin_files ${CMAKE_CURRENT_BINARY_DIR}/testProgs/$<CONFIG>/${target}${CMAKE_EXECUTABLE_SUFFIX})
-   endforeach()
-   
-   list(APPEND bin_files
-       ${CMAKE_CURRENT_BINARY_DIR}/mediaServer/$<CONFIG>/live555MediaServer${CMAKE_EXECUTABLE_SUFFIX}
-       ${CMAKE_CURRENT_BINARY_DIR}/proxyServer/$<CONFIG>/live555ProxyServer${CMAKE_EXECUTABLE_SUFFIX}
-       ${CMAKE_CURRENT_BINARY_DIR}/hlsProxy/$<CONFIG>/live555HLSProxy${CMAKE_EXECUTABLE_SUFFIX}
-   )
-endif()
-
 install(FILES ${config_version_file}
    DESTINATION lib/cmake/live555
 )
 
 install(TARGETS live555 EXPORT live555Target
    INCLUDES DESTINATION include/liveMedia
-   RUNTIME DESTINATION bin/$<CONFIG>
-   LIBRARY DESTINATION lib/$<CONFIG>
-   ARCHIVE DESTINATION lib/$<CONFIG>
+   RUNTIME DESTINATION bin
+   LIBRARY DESTINATION lib
+   ARCHIVE DESTINATION lib
 )
-
-if(LIVE555_BUILD_EXAMPLES)
-install(FILES ${bin_files}
-   DESTINATION bin
-   PERMISSIONS 
-      OWNER_WRITE OWNER_READ OWNER_EXECUTE
-      GROUP_WRITE GROUP_READ GROUP_EXECUTE
-      WORLD_WRITE WORLD_READ WORLD_EXECUTE
-   COMPONENT runtime
-)
-endif()
 
 install(EXPORT live555Target
     NAMESPACE live555::

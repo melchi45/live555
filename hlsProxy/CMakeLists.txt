@@ -39,3 +39,8 @@ endif ()
 #         set ( LIB_EXTENSION a )
 #     endif()
 # endif()
+
+install(TARGETS live555HLSProxy
+    RUNTIME DESTINATION bin
+    COMPONENT runtime
+)

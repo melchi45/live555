@@ -37,3 +37,8 @@ endif ()
 #         set ( LIB_EXTENSION a )
 #     endif()
 # endif()
+
+install(TARGETS live555ProxyServer
+    RUNTIME DESTINATION bin
+    COMPONENT runtime
+)
