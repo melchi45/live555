@@ -28,28 +28,60 @@ jobs:
       - name: Check diff between repo and extracted archive
         id: diff_check
         run: |
-          # Get the top-level directory name inside the archive
+          # Get the top-level directory name inside the archive (e.g. "live")
           ARCHIVE_ROOT=$(tar -tzf live555-latest.tar.gz | head -1 | cut -f1 -d"/")
           echo "archive_root=$ARCHIVE_ROOT" >> $GITHUB_OUTPUT
 
-          # Compare extracted archive root directory with current repository
-          if diff -rq --exclude=".git" "extracted/$ARCHIVE_ROOT/" . > /dev/null 2>&1; then
+          # Compare only upstream-relevant files.
+          # Exclude: working directories created by this workflow (extracted/,
+          # live555-latest.tar.gz) and repo-specific additions (.github,
+          # CMakePresets.json, toolchains/, cmake/) that are not part of the
+          # upstream archive and must not trigger a false-positive diff.
+          DIFF_EXCLUDES=(
+            --exclude=".git"
+            --exclude=".github"
+            --exclude="extracted"
+            --exclude="live555-latest.tar.gz"
+            --exclude="CMakePresets.json"
+            --exclude="toolchains"
+            --exclude="cmake"
+          )
+
+          if diff -rq "${DIFF_EXCLUDES[@]}" "extracted/$ARCHIVE_ROOT/" . > /dev/null 2>&1; then
             echo "has_changes=false" >> $GITHUB_OUTPUT
             echo "No differences found. Skipping update."
           else
             echo "has_changes=true" >> $GITHUB_OUTPUT
             echo "Differences detected:"
-            diff -rq --exclude=".git" "extracted/$ARCHIVE_ROOT/" . || true
+            diff -rq "${DIFF_EXCLUDES[@]}" "extracted/$ARCHIVE_ROOT/" . || true
           fi
 
       - name: Copy extracted files into repo
         if: steps.diff_check.outputs.has_changes == 'true'
         run: |
           ARCHIVE_ROOT=${{ steps.diff_check.outputs.archive_root }}
+
+          # Exclude the temp working directories so rsync does not delete its
+          # own source (extracted/$ARCHIVE_ROOT lives inside the destination
+          # "."), which would cause "file has vanished" warnings and exit 24.
+          # Also preserve repo-specific additions that are not in the archive.
           rsync -av --delete \
             --exclude=".git" \
             --exclude=".github" \
+            --exclude="extracted" \
+            --exclude="live555-latest.tar.gz" \
+            --exclude="CMakePresets.json" \
+            --exclude="toolchains" \
+            --exclude="cmake" \
             "extracted/$ARCHIVE_ROOT/" .
+
+          # rsync exit code 24 means "some source files vanished before they
+          # could be transferred" — treated as a warning, not a failure.
+          rsync_rc=$?
+          if [ "$rsync_rc" -ne 0 ] && [ "$rsync_rc" -ne 24 ]; then
+            echo "rsync failed with exit code $rsync_rc"
+            exit "$rsync_rc"
+          fi
 
       - name: Commit changes
         if: steps.diff_check.outputs.has_changes == 'true'
