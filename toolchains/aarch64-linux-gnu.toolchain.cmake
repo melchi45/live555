@@ -36,9 +36,11 @@
 set(CMAKE_SYSTEM_NAME Linux)
 set(CMAKE_SYSTEM_PROCESSOR arm)
 
-set(CMAKE_SYSROOT /opt/opensdk/opensdk-4.01/linaro-aarch64-2018.08-gcc8.2/aarch64-linux-gnu/libc)
+# CMAKE_SYSROOT is intentionally not set for the apt-installed cross-compiler
+# (gcc-aarch64-linux-gnu), which was built with --with-sysroot=/ and finds
+# target libraries under /usr/aarch64-linux-gnu automatically.
 # message(STATUS "CMAKE_SYSROOT = ${CMAKE_SYSROOT}")
-set(CMAKE_SYSROOT_PATH ${CMAKE_SYSROOT})
+set(CMAKE_SYSROOT_PATH /usr/aarch64-linux-gnu)
 # message(STATUS "CMAKE_SYSROOT_PATH = ${CMAKE_SYSROOT_PATH}")
 # If using a different target, set -DTARGET_ABI=<abi> on the command line.
 # Some of our pre-built libraries (such as libelftc) assume gnueabihf.
@@ -55,7 +57,7 @@ SET(CMAKE_CXX_COMPILER aarch64-${TARGET_ABI}-g++)
 # To build the tests, we need to set where the target environment containing
 # the required library is. On Debian-like systems, this is
 # set(CMAKE_FIND_ROOT_PATH "${CMAKE_SYSROOT_PATH}/usr" "${CMAKE_SYSROOT_PATH}/lib" "${CMAKE_SYSROOT_PATH}/lib_cv2")
-set(CMAKE_FIND_ROOT_PATH "${CMAKE_SYSROOT_PATH}/usr")
+set(CMAKE_FIND_ROOT_PATH "${CMAKE_SYSROOT_PATH}" "/usr/lib/aarch64-linux-gnu")
 
 # message(STATUS "CMAKE_SYSROOT_PATH = ${CMAKE_SYSROOT_PATH}")
 

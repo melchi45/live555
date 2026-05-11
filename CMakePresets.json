@@ -1,0 +1,386 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 21,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "installDir": "${sourceDir}/install",
+      "cacheVariables": {
+        "CMAKE_VERBOSE_MAKEFILE": "ON",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install",
+        "LIVE555_ENABLE_OPENSSL": "ON",
+        "LIVE555_BUILD_EXAMPLES": "ON"
+      }
+    },
+    {
+      "name": "linux-base",
+      "hidden": true,
+      "inherits": "base",
+      "generator": "Unix Makefiles",
+      "cacheVariables": {
+        "LIVE555_BUILD_SHARED_LIBS": "OFF"
+      }
+    },
+    {
+      "name": "windows-base",
+      "hidden": true,
+      "inherits": "base",
+      "generator": "Visual Studio 17 2022",
+      "cacheVariables": {
+        "LIVE555_ENABLE_OPENSSL": "OFF"
+      }
+    },
+    {
+      "name": "linux-release",
+      "displayName": "Linux Release (Static, OpenSSL)",
+      "description": "cmake --preset linux-release && cmake --build --preset linux-release",
+      "inherits": "linux-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "linux-debug",
+      "displayName": "Linux Debug (Static, OpenSSL)",
+      "description": "cmake --preset linux-debug && cmake --build --preset linux-debug",
+      "inherits": "linux-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "linux-release-shared",
+      "displayName": "Linux Release (Shared, OpenSSL)",
+      "description": "Generic shared library build for Linux",
+      "inherits": "linux-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "LIVE555_BUILD_SHARED_LIBS": "ON"
+      }
+    },
+    {
+      "name": "linux-release-examples",
+      "displayName": "Linux Release (Static, OpenSSL, with Examples)",
+      "description": "Includes testProgs, proxyServer, mediaServer, hlsProxy",
+      "inherits": "linux-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "LIVE555_BUILD_EXAMPLES": "ON"
+      }
+    },
+
+    {
+      "name": "vs2022-x86",
+      "displayName": "Windows x86 (VS2022, Static)",
+      "description": "Visual Studio 17 2022 Win32 static build",
+      "inherits": "windows-base",
+      "architecture": {
+        "value": "Win32",
+        "strategy": "set"
+      }
+    },
+    {
+      "name": "vs2022-x64",
+      "displayName": "Windows x64 (VS2022, Static)",
+      "description": "Visual Studio 17 2022 x64 static build",
+      "inherits": "windows-base",
+      "architecture": {
+        "value": "x64",
+        "strategy": "set"
+      }
+    },
+    {
+      "name": "vs2022-arm",
+      "displayName": "Windows ARM (VS2022, Static)",
+      "description": "Visual Studio 17 2022 ARM static build",
+      "inherits": "windows-base",
+      "architecture": {
+        "value": "ARM",
+        "strategy": "set"
+      }
+    },
+    {
+      "name": "vs2022-arm64",
+      "displayName": "Windows ARM64 (VS2022, Static)",
+      "description": "Visual Studio 17 2022 ARM64 static build",
+      "inherits": "windows-base",
+      "architecture": {
+        "value": "ARM64",
+        "strategy": "set"
+      }
+    },
+
+    {
+      "name": "vs2022-x86-dll",
+      "displayName": "Windows x86 DLL (VS2022, Monolith Shared)",
+      "description": "Monolith shared library for Win32 — requires LIVEMEDIA_API dllexport/dllimport",
+      "inherits": "windows-base",
+      "architecture": {
+        "value": "Win32",
+        "strategy": "set"
+      },
+      "cacheVariables": {
+        "LIVE555_MONOLITH_BUILD": "ON"
+      }
+    },
+    {
+      "name": "vs2022-x64-dll",
+      "displayName": "Windows x64 DLL (VS2022, Monolith Shared)",
+      "description": "Monolith shared library for x64 — requires LIVEMEDIA_API dllexport/dllimport",
+      "inherits": "windows-base",
+      "architecture": {
+        "value": "x64",
+        "strategy": "set"
+      },
+      "cacheVariables": {
+        "LIVE555_MONOLITH_BUILD": "ON"
+      }
+    },
+
+    {
+      "name": "vs2022-x86-openssl",
+      "displayName": "Windows x86 (VS2022, Static, OpenSSL via vcpkg)",
+      "description": "Requires vcpkg with openssl:x86-windows installed. Set VCPKG_ROOT env var.",
+      "inherits": "windows-base",
+      "architecture": {
+        "value": "Win32",
+        "strategy": "set"
+      },
+      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+      "cacheVariables": {
+        "LIVE555_ENABLE_OPENSSL": "ON",
+        "CMAKE_PREFIX_PATH": "$env{VCPKG_ROOT}/installed/x86-windows",
+        "VCPKG_TARGET_TRIPLET": "x86-windows"
+      }
+    },
+    {
+      "name": "vs2022-x64-openssl",
+      "displayName": "Windows x64 (VS2022, Static, OpenSSL via vcpkg)",
+      "description": "Requires vcpkg with openssl:x64-windows installed. Set VCPKG_ROOT env var.",
+      "inherits": "windows-base",
+      "architecture": {
+        "value": "x64",
+        "strategy": "set"
+      },
+      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+      "cacheVariables": {
+        "LIVE555_ENABLE_OPENSSL": "ON",
+        "CMAKE_PREFIX_PATH": "$env{VCPKG_ROOT}/installed/x64-windows",
+        "VCPKG_TARGET_TRIPLET": "x64-windows"
+      }
+    },
+
+    {
+      "name": "vs2019-x86",
+      "displayName": "Windows x86 (VS2019, Static)",
+      "inherits": "windows-base",
+      "generator": "Visual Studio 16 2019",
+      "architecture": {
+        "value": "Win32",
+        "strategy": "set"
+      }
+    },
+    {
+      "name": "vs2019-x64",
+      "displayName": "Windows x64 (VS2019, Static)",
+      "inherits": "windows-base",
+      "generator": "Visual Studio 16 2019",
+      "architecture": {
+        "value": "x64",
+        "strategy": "set"
+      }
+    },
+
+    {
+      "name": "macos",
+      "displayName": "macOS (Xcode, Static)",
+      "description": "Xcode generator build for macOS",
+      "inherits": "base",
+      "generator": "Xcode"
+    },
+
+    {
+      "name": "cross-aarch64",
+      "displayName": "Cross-compile Linux AArch64",
+      "description": "Requires aarch64-linux-gnu-gcc toolchain. See toolchains/aarch64-linux-gnu.toolchain.cmake",
+      "inherits": "linux-base",
+      "toolchainFile": "${sourceDir}/toolchains/aarch64-linux-gnu.toolchain.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "LIVE555_ENABLE_OPENSSL": "OFF",
+        "LIVE555_BUILD_EXAMPLES": "ON"
+      }
+    },
+    {
+      "name": "cross-arm",
+      "displayName": "Cross-compile Linux ARM (gnueabi)",
+      "description": "Requires arm-linux-gnueabi-gcc toolchain. See toolchains/arm-linux-gnueabi.toolchain.cmake",
+      "inherits": "linux-base",
+      "toolchainFile": "${sourceDir}/toolchains/arm-linux-gnueabi.toolchain.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "LIVE555_ENABLE_OPENSSL": "OFF",
+        "LIVE555_BUILD_EXAMPLES": "ON"
+      }
+    },
+
+    {
+      "name": "emscripten",
+      "displayName": "Emscripten (WebAssembly)",
+      "description": "Requires EMSCRIPTEN_ROOT_PATH env var pointing to upstream/emscripten inside emsdk",
+      "inherits": "linux-base",
+      "toolchainFile": "$env{EMSCRIPTEN_ROOT_PATH}/cmake/Modules/Platform/Emscripten.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "LIVE555_ENABLE_OPENSSL": "OFF",
+        "LIVE555_BUILD_EMSCRIPTEN": "ON",
+        "EMSCRIPTEN_ROOT_PATH": "$env{EMSCRIPTEN_ROOT_PATH}"
+      }
+    }
+  ],
+
+  "buildPresets": [
+    {
+      "name": "linux-release",
+      "displayName": "Linux Release",
+      "configurePreset": "linux-release"
+    },
+    {
+      "name": "linux-release-install",
+      "displayName": "Linux Release + Install",
+      "configurePreset": "linux-release",
+      "targets": ["install"]
+    },
+    {
+      "name": "linux-debug",
+      "displayName": "Linux Debug",
+      "configurePreset": "linux-debug"
+    },
+    {
+      "name": "linux-release-shared",
+      "displayName": "Linux Release (Shared)",
+      "configurePreset": "linux-release-shared"
+    },
+    {
+      "name": "linux-release-examples",
+      "displayName": "Linux Release (with Examples)",
+      "configurePreset": "linux-release-examples"
+    },
+
+    {
+      "name": "vs2022-x86-release",
+      "displayName": "Win32 Release",
+      "configurePreset": "vs2022-x86",
+      "configuration": "Release"
+    },
+    {
+      "name": "vs2022-x86-debug",
+      "displayName": "Win32 Debug",
+      "configurePreset": "vs2022-x86",
+      "configuration": "Debug"
+    },
+    {
+      "name": "vs2022-x64-release",
+      "displayName": "x64 Release",
+      "configurePreset": "vs2022-x64",
+      "configuration": "Release"
+    },
+    {
+      "name": "vs2022-x64-debug",
+      "displayName": "x64 Debug",
+      "configurePreset": "vs2022-x64",
+      "configuration": "Debug"
+    },
+    {
+      "name": "vs2022-arm-release",
+      "displayName": "ARM Release",
+      "configurePreset": "vs2022-arm",
+      "configuration": "Release"
+    },
+    {
+      "name": "vs2022-arm64-release",
+      "displayName": "ARM64 Release",
+      "configurePreset": "vs2022-arm64",
+      "configuration": "Release"
+    },
+    {
+      "name": "vs2022-x86-dll-release",
+      "displayName": "Win32 DLL Release",
+      "configurePreset": "vs2022-x86-dll",
+      "configuration": "Release"
+    },
+    {
+      "name": "vs2022-x64-dll-release",
+      "displayName": "x64 DLL Release",
+      "configurePreset": "vs2022-x64-dll",
+      "configuration": "Release"
+    },
+    {
+      "name": "vs2022-x86-openssl-release",
+      "displayName": "Win32 Release (OpenSSL/vcpkg)",
+      "configurePreset": "vs2022-x86-openssl",
+      "configuration": "Release"
+    },
+    {
+      "name": "vs2022-x64-openssl-release",
+      "displayName": "x64 Release (OpenSSL/vcpkg)",
+      "configurePreset": "vs2022-x64-openssl",
+      "configuration": "Release"
+    },
+    {
+      "name": "vs2019-x86-release",
+      "displayName": "VS2019 Win32 Release",
+      "configurePreset": "vs2019-x86",
+      "configuration": "Release"
+    },
+    {
+      "name": "vs2019-x64-release",
+      "displayName": "VS2019 x64 Release",
+      "configurePreset": "vs2019-x64",
+      "configuration": "Release"
+    },
+
+    {
+      "name": "macos-release",
+      "displayName": "macOS Release",
+      "configurePreset": "macos",
+      "configuration": "Release"
+    },
+    {
+      "name": "macos-debug",
+      "displayName": "macOS Debug",
+      "configurePreset": "macos",
+      "configuration": "Debug"
+    },
+    {
+      "name": "macos-release-install",
+      "displayName": "macOS Release + Install",
+      "configurePreset": "macos",
+      "configuration": "Release",
+      "targets": ["install"]
+    },
+
+    {
+      "name": "cross-aarch64",
+      "displayName": "Cross AArch64",
+      "configurePreset": "cross-aarch64"
+    },
+    {
+      "name": "cross-arm",
+      "displayName": "Cross ARM",
+      "configurePreset": "cross-arm"
+    },
+
+    {
+      "name": "emscripten",
+      "displayName": "Emscripten",
+      "configurePreset": "emscripten"
+    }
+  ]
+}
