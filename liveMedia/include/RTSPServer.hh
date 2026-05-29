@@ -185,7 +185,7 @@ public: // should be protected, but some old compilers complain otherwise
     virtual void handleCmd_GET_PARAMETER(char const* fullRequestStr); // when operating on the entire server
     virtual void handleCmd_SET_PARAMETER(char const* fullRequestStr); // when operating on the entire server
     virtual void handleCmd_DESCRIBE(char const* urlPreSuffix, char const* urlSuffix, char const* fullRequestStr);
-    static void DESCRIBELookupCompletionFunction(void* clientData, ServerMediaSession* sessionLookedUp);
+    static void DESCRIBELookupCompletionFunction(void* clientData, ServerMediaSession* smsLookedUp);
     virtual void handleCmd_DESCRIBE_afterLookup(ServerMediaSession* session);
     virtual void handleCmd_REGISTER(char const* cmd/*"REGISTER" or "DEREGISTER"*/,
 				    char const* url, char const* urlSuffix, char const* fullRequestStr,
@@ -253,10 +253,12 @@ public: // should be protected, but some old compilers complain otherwise
     // Make the handler functions for each command virtual, to allow subclasses to redefine them:
     virtual void handleCmd_SETUP(RTSPClientConnection* ourClientConnection,
 				 char const* urlPreSuffix, char const* urlSuffix, char const* fullRequestStr);
-    static void SETUPLookupCompletionFunction1(void* clientData, ServerMediaSession* sessionLookedUp);
-    virtual void handleCmd_SETUP_afterLookup1(ServerMediaSession* sms);
-    static void SETUPLookupCompletionFunction2(void* clientData, ServerMediaSession* sessionLookedUp);
-    virtual void handleCmd_SETUP_afterLookup2(ServerMediaSession* sms);
+    static void SETUPLookupCompletionFunction1(void* clientData, ServerMediaSession* smsLookedUp);
+    virtual void handleCmd_SETUP_afterLookup1(RTSPClientConnection* ourClientConnection,
+					      ServerMediaSession* sms);
+    static void SETUPLookupCompletionFunction2(void* clientData, ServerMediaSession* smsLookedUp);
+    virtual void handleCmd_SETUP_afterLookup2(RTSPClientConnection* ourClientConnection,
+					      ServerMediaSession* sms);
     virtual void handleCmd_withinSession(RTSPClientConnection* ourClientConnection,
 					 char const* cmdName,
 					 char const* urlPreSuffix, char const* urlSuffix,
@@ -295,7 +297,6 @@ public: // should be protected, but some old compilers complain otherwise
     } * fStreamStates;
 
     // Member variables used to implement "handleCmd_SETUP()":
-    RTSPServer::RTSPClientConnection* fOurClientConnection;
     char const* fURLPreSuffix; char const* fURLSuffix; char const* fFullRequestStr; char const* fTrackId;
   };
 

@@ -376,6 +376,24 @@ void RTSPServer::RTSPClientConnection
   setRTSPResponse("200 OK");
 }
 
+// A class used to implement "DESCRIBE" (possibly asynchronously).  It consists of
+// A "RTSPServer" (pointer), and an id for a "RTSPClientConnection".
+// (Note: not a pointer to a "RTSPClientConnection", in case a connection dies.)
+
+class ServerConnectionPair {
+public:
+  ServerConnectionPair(RTSPServer& server, u_int32_t connectionId)
+    : fServer(server), fConnectionId(connectionId) {}
+  ~ServerConnectionPair() {}
+
+  RTSPServer& server() const { return fServer; }
+  u_int32_t connectionId() const { return fConnectionId; }
+
+private:
+  RTSPServer& fServer;
+  u_int32_t fConnectionId;
+};
+
 void RTSPServer::RTSPClientConnection
 ::handleCmd_DESCRIBE(char const* urlPreSuffix, char const* urlSuffix, char const* fullRequestStr) {
   char urlTotalSuffix[2*RTSP_PARAM_STRING_MAX];
@@ -393,13 +411,23 @@ void RTSPServer::RTSPClientConnection
   // for "application/sdp", because that's what we're sending back #####
     
   // Begin by looking up the "ServerMediaSession" object for the specified "urlTotalSuffix":
-  fOurServer.lookupServerMediaSession(urlTotalSuffix, DESCRIBELookupCompletionFunction, this);
+  ServerConnectionPair* serverConnectionPair = new ServerConnectionPair(fOurRTSPServer, id());
+  fOurServer.lookupServerMediaSession(urlTotalSuffix, DESCRIBELookupCompletionFunction,
+				      serverConnectionPair);
 }
 
 void RTSPServer::RTSPClientConnection
-::DESCRIBELookupCompletionFunction(void* clientData, ServerMediaSession* sessionLookedUp) {
-  RTSPServer::RTSPClientConnection* connection = (RTSPServer::RTSPClientConnection*)clientData;
-  connection->handleCmd_DESCRIBE_afterLookup(sessionLookedUp);
+::DESCRIBELookupCompletionFunction(void* clientData, ServerMediaSession* smsLookedUp) {
+  ServerConnectionPair* serverConnectionPair = (ServerConnectionPair*)clientData;
+  RTSPServer& server = serverConnectionPair->server();
+  u_int32_t connectionId = serverConnectionPair->connectionId();
+  RTSPClientConnection* ourClientConnection
+    = (RTSPClientConnection*)(server.lookupClientConnection(connectionId));
+
+  if (ourClientConnection != NULL) {
+    ourClientConnection->handleCmd_DESCRIBE_afterLookup(smsLookedUp);
+  }
+  delete serverConnectionPair;
 }
 
 void RTSPServer::RTSPClientConnection
@@ -1364,6 +1392,24 @@ static Boolean parsePlayNowHeader(char const* buf) {
   return True;
 }
 
+// A class used to implement "SETUP (possibly asynchronously).  It consists of
+// a "RTSPClientSession" (pointer), and an id for a "RTSPClientConnection".
+// (Note: not a pointer to a "RTSPClientConnection", in case a connection dies.)
+
+class SessionConnectionPair {
+public:
+  SessionConnectionPair(RTSPServer::RTSPClientSession* session, u_int32_t connectionId)
+    : fSession(session), fConnectionId(connectionId) {}
+  ~SessionConnectionPair() {}
+
+  RTSPServer::RTSPClientSession* session() const { return fSession; }
+  u_int32_t connectionId() const { return fConnectionId; }
+
+private:
+  RTSPServer::RTSPClientSession* fSession;
+  u_int32_t fConnectionId;
+};
+
 void RTSPServer::RTSPClientSession
 ::handleCmd_SETUP(RTSPServer::RTSPClientConnection* ourClientConnection,
 		  char const* urlPreSuffix, char const* urlSuffix, char const* fullRequestStr) {
@@ -1372,27 +1418,38 @@ void RTSPServer::RTSPClientSession
   // in the special case where we have only a single track.  I.e., in this case, we also handle:
   //    "urlPreSuffix" is empty and "urlSuffix" is the session (stream) name, or
   //    "urlPreSuffix" concatenated with "urlSuffix" (with "/" inbetween) is the session (stream) name.
-  fOurClientConnection = ourClientConnection;
   fURLPreSuffix = urlPreSuffix; fURLSuffix = urlSuffix; fFullRequestStr = fullRequestStr;
   fTrackId = urlSuffix; // in the normal case
 
   // Begin by checking whether the specified stream name exists:
   char const* streamName = urlPreSuffix; // in the normal case
-  fOurServer.lookupServerMediaSession(streamName, SETUPLookupCompletionFunction1, this,
+  SessionConnectionPair* sessionConnectionPair
+    = new SessionConnectionPair(this, ourClientConnection->id());
+  fOurServer.lookupServerMediaSession(streamName, SETUPLookupCompletionFunction1,
+				      sessionConnectionPair,
 				      fOurServerMediaSession == NULL);
 }
 
 void RTSPServer::RTSPClientSession
-::SETUPLookupCompletionFunction1(void* clientData, ServerMediaSession* sessionLookedUp) {
-  RTSPServer::RTSPClientSession* session = (RTSPServer::RTSPClientSession*)clientData;
-  session->handleCmd_SETUP_afterLookup1(sessionLookedUp);
+::SETUPLookupCompletionFunction1(void* clientData, ServerMediaSession* smsLookedUp) {
+  SessionConnectionPair* sessionConnectionPair = (SessionConnectionPair*)clientData;
+  RTSPClientSession* session = sessionConnectionPair->session();
+  u_int32_t connectionId = sessionConnectionPair->connectionId();
+  RTSPClientConnection* ourClientConnection
+    = (RTSPClientConnection*)(session->fOurRTSPServer.lookupClientConnection(connectionId));
+
+  if (ourClientConnection != NULL) {
+    session->handleCmd_SETUP_afterLookup1(ourClientConnection, smsLookedUp);
+  }
+  delete sessionConnectionPair;
 }
 
 void RTSPServer::RTSPClientSession
-::handleCmd_SETUP_afterLookup1(ServerMediaSession* sms) {
+::handleCmd_SETUP_afterLookup1(RTSPClientConnection* ourClientConnection,
+			       ServerMediaSession* sms) {
   if (sms != NULL) {
     // The lookup succeeded; continue working with the returned "ServerMediaSession":
-    handleCmd_SETUP_afterLookup2(sms);
+    handleCmd_SETUP_afterLookup2(ourClientConnection, sms);
     return;
   }
 
@@ -1410,27 +1467,38 @@ void RTSPServer::RTSPClientSession
   fTrackId = NULL;
       
   // Check again:
-  fOurServer.lookupServerMediaSession(streamName, SETUPLookupCompletionFunction2, this,
-				      fOurServerMediaSession == NULL);
+  SessionConnectionPair* sessionConnectionPair
+    = new SessionConnectionPair(this, ourClientConnection->id());
+  fOurServer.lookupServerMediaSession(streamName, SETUPLookupCompletionFunction2,
+				      sessionConnectionPair, fOurServerMediaSession == NULL);
   delete[] concatenatedStreamName;
 }
 
 void RTSPServer::RTSPClientSession
-::SETUPLookupCompletionFunction2(void* clientData, ServerMediaSession* sessionLookedUp) {
-  RTSPServer::RTSPClientSession* session = (RTSPServer::RTSPClientSession*)clientData;
-  session->handleCmd_SETUP_afterLookup2(sessionLookedUp);
+::SETUPLookupCompletionFunction2(void* clientData, ServerMediaSession* smsLookedUp) {
+  SessionConnectionPair* sessionConnectionPair = (SessionConnectionPair*)clientData;
+  RTSPClientSession* session = sessionConnectionPair->session();
+  u_int32_t connectionId = sessionConnectionPair->connectionId();
+  RTSPClientConnection* ourClientConnection
+    = (RTSPClientConnection*)(session->fOurRTSPServer.lookupClientConnection(connectionId));
+
+  if (ourClientConnection != NULL) {
+    session->handleCmd_SETUP_afterLookup2(ourClientConnection, smsLookedUp);
+  }
+  delete sessionConnectionPair;
 }
 
 void RTSPServer::RTSPClientSession
-::handleCmd_SETUP_afterLookup2(ServerMediaSession* sms) {
+::handleCmd_SETUP_afterLookup2(RTSPClientConnection* ourClientConnection,
+			       ServerMediaSession* sms) {
   do {
     if (sms == NULL) {
       if (fOurServerMediaSession == NULL) {
 	// The client asked for a stream that doesn't exist (and this session descriptor has not been used before):
-	fOurClientConnection->handleCmd_notFound();
+	ourClientConnection->handleCmd_notFound();
       } else {
 	// The client asked for a stream that doesn't exist, but using a stream id for a stream that does exist. Bad request:
-	fOurClientConnection->handleCmd_bad();
+	ourClientConnection->handleCmd_bad();
       }
       break;
     } else {
@@ -1440,7 +1508,7 @@ void RTSPServer::RTSPClientSession
 	fOurServerMediaSession->incrementReferenceCount();
       } else if (sms != fOurServerMediaSession) {
 	// The client asked for a stream that's different from the one originally requested for this stream id.  Bad request:
-	fOurClientConnection->handleCmd_bad();
+	ourClientConnection->handleCmd_bad();
 	break;
       }
     }
@@ -1481,14 +1549,14 @@ void RTSPServer::RTSPClientSession
       }
       if (trackNum >= fNumStreamStates) {
 	// The specified track id doesn't exist, so this request fails:
-	fOurClientConnection->handleCmd_notFound();
+	ourClientConnection->handleCmd_notFound();
 	break;
       }
     } else {
       // Weird case: there was no track id in the URL.
       // This works only if we have only one subsession:
       if (fNumStreamStates != 1 || fStreamStates[0].subsession == NULL) {
-	fOurClientConnection->handleCmd_bad();
+	ourClientConnection->handleCmd_bad();
 	break;
       }
       trackNum = 0;
@@ -1517,7 +1585,7 @@ void RTSPServer::RTSPClientSession
 			 clientRTPPortNum, clientRTCPPortNum,
 			 rtpChannelId, rtcpChannelId);
     if ((streamingMode == RTP_TCP && rtpChannelId == 0xFF) ||
-	(streamingMode != RTP_TCP && fOurClientConnection->fClientOutputSocket != fOurClientConnection->fClientInputSocket)) {
+	(streamingMode != RTP_TCP && ourClientConnection->fClientOutputSocket != ourClientConnection->fClientInputSocket)) {
       // An anomolous situation, caused by a buggy client.  Either:
       //     1/ TCP streaming was requested, but with no "interleaving=" fields.  (QuickTime Player sometimes does this.), or
       //     2/ TCP streaming was not requested, but we're doing RTSP-over-HTTP tunneling (which implies TCP streaming).
@@ -1547,7 +1615,7 @@ void RTSPServer::RTSPClientSession
     // Then, get server parameters from the 'subsession':
     if (streamingMode == RTP_TCP) {
       // Note that we'll be streaming over the RTSP TCP connection:
-      fStreamStates[trackNum].tcpSocketNum = fOurClientConnection->fClientOutputSocket;
+      fStreamStates[trackNum].tcpSocketNum = ourClientConnection->fClientOutputSocket;
       fOurRTSPServer.noteTCPStreamingOnSocket(fStreamStates[trackNum].tcpSocketNum, this, trackNum);
     }
     struct sockaddr_storage destinationAddress = nullAddress();
@@ -1574,14 +1642,14 @@ void RTSPServer::RTSPClientSession
     // Make sure that we transmit on the same interface that's used by the client
     // (in case we're a multi-homed server):
     struct sockaddr_storage sourceAddr; SOCKLEN_T namelen = sizeof sourceAddr;
-    getsockname(fOurClientConnection->fClientInputSocket, (struct sockaddr*)&sourceAddr, &namelen);
+    getsockname(ourClientConnection->fClientInputSocket, (struct sockaddr*)&sourceAddr, &namelen);
     
-    subsession->getStreamParameters(fOurSessionId, fOurClientConnection->fClientAddr,
+    subsession->getStreamParameters(fOurSessionId, ourClientConnection->fClientAddr,
 				    clientRTPPort, clientRTCPPort,
 				    streamingMode == RTP_TCP
 				    ? fStreamStates[trackNum].tcpSocketNum : -1,
 				    rtpChannelId, rtcpChannelId,
-                                    &fOurClientConnection->fTLS,
+                                    &ourClientConnection->fTLS,
 				    destinationAddress, destinationTTL, fIsMulticast,
 				    serverRTPPort, serverRTCPPort,
 				    fStreamStates[trackNum].streamToken);
@@ -1597,13 +1665,13 @@ void RTSPServer::RTSPClientSession
     if (fIsMulticast) {
       switch (streamingMode) {
           case RTP_UDP: {
-	    snprintf((char*)fOurClientConnection->fResponseBuffer, sizeof fOurClientConnection->fResponseBuffer,
+	    snprintf((char*)ourClientConnection->fResponseBuffer, sizeof ourClientConnection->fResponseBuffer,
 		     "RTSP/1.0 200 OK\r\n"
 		     "CSeq: %s\r\n"
 		     "%s"
 		     "Transport: RTP/%s;multicast;destination=%s;source=%s;port=%d-%d;ttl=%d\r\n"
 		     "Session: %08X%s\r\n\r\n",
-		     fOurClientConnection->fCurrentCSeq,
+		     ourClientConnection->fCurrentCSeq,
 		     dateHeader(),
 		     fOurRTSPServer.fWeServeSRTP ? "SAVP" : "AVP",
 		     destAddrStr.val(), sourceAddrStr.val(), ntohs(serverRTPPort.num()), ntohs(serverRTCPPort.num()), destinationTTL,
@@ -1612,17 +1680,17 @@ void RTSPServer::RTSPClientSession
 	  }
           case RTP_TCP: {
 	    // multicast streams can't be sent via TCP
-	    fOurClientConnection->handleCmd_unsupportedTransport();
+	    ourClientConnection->handleCmd_unsupportedTransport();
 	    break;
 	  }
           case RAW_UDP: {
-	    snprintf((char*)fOurClientConnection->fResponseBuffer, sizeof fOurClientConnection->fResponseBuffer,
+	    snprintf((char*)ourClientConnection->fResponseBuffer, sizeof ourClientConnection->fResponseBuffer,
 		     "RTSP/1.0 200 OK\r\n"
 		     "CSeq: %s\r\n"
 		     "%s"
 		     "Transport: %s;multicast;destination=%s;source=%s;port=%d;ttl=%d\r\n"
 		     "Session: %08X%s\r\n\r\n",
-		     fOurClientConnection->fCurrentCSeq,
+		     ourClientConnection->fCurrentCSeq,
 		     dateHeader(),
 		     streamingModeString, destAddrStr.val(), sourceAddrStr.val(), ntohs(serverRTPPort.num()), destinationTTL,
 		     fOurSessionId, timeoutParameterString);
@@ -1632,13 +1700,13 @@ void RTSPServer::RTSPClientSession
     } else {
       switch (streamingMode) {
           case RTP_UDP: {
-	    snprintf((char*)fOurClientConnection->fResponseBuffer, sizeof fOurClientConnection->fResponseBuffer,
+	    snprintf((char*)ourClientConnection->fResponseBuffer, sizeof ourClientConnection->fResponseBuffer,
 		     "RTSP/1.0 200 OK\r\n"
 		     "CSeq: %s\r\n"
 		     "%s"
 		     "Transport: RTP/%s;unicast;destination=%s;source=%s;client_port=%d-%d;server_port=%d-%d\r\n"
 		     "Session: %08X%s\r\n\r\n",
-		     fOurClientConnection->fCurrentCSeq,
+		     ourClientConnection->fCurrentCSeq,
 		     dateHeader(),
 		     fOurRTSPServer.fWeServeSRTP ? "SAVP" : "AVP",
 		     destAddrStr.val(), sourceAddrStr.val(), ntohs(clientRTPPort.num()), ntohs(clientRTCPPort.num()), ntohs(serverRTPPort.num()), ntohs(serverRTCPPort.num()),
@@ -1647,15 +1715,15 @@ void RTSPServer::RTSPClientSession
 	  }
           case RTP_TCP: {
 	    if (!fOurRTSPServer.fAllowStreamingRTPOverTCP) {
-	      fOurClientConnection->handleCmd_unsupportedTransport();
+	      ourClientConnection->handleCmd_unsupportedTransport();
 	    } else {
-	      snprintf((char*)fOurClientConnection->fResponseBuffer, sizeof fOurClientConnection->fResponseBuffer,
+	      snprintf((char*)ourClientConnection->fResponseBuffer, sizeof ourClientConnection->fResponseBuffer,
 		       "RTSP/1.0 200 OK\r\n"
 		       "CSeq: %s\r\n"
 		       "%s"
 		       "Transport: RTP/AVP/TCP;unicast;destination=%s;source=%s;interleaved=%d-%d\r\n"
 		       "Session: %08X%s\r\n\r\n",
-		       fOurClientConnection->fCurrentCSeq,
+		       ourClientConnection->fCurrentCSeq,
 		       dateHeader(),
 		       destAddrStr.val(), sourceAddrStr.val(), rtpChannelId, rtcpChannelId,
 		       fOurSessionId, timeoutParameterString);
@@ -1663,13 +1731,13 @@ void RTSPServer::RTSPClientSession
 	    break;
 	  }
           case RAW_UDP: {
-	    snprintf((char*)fOurClientConnection->fResponseBuffer, sizeof fOurClientConnection->fResponseBuffer,
+	    snprintf((char*)ourClientConnection->fResponseBuffer, sizeof ourClientConnection->fResponseBuffer,
 		     "RTSP/1.0 200 OK\r\n"
 		     "CSeq: %s\r\n"
 		     "%s"
 		     "Transport: %s;unicast;destination=%s;source=%s;client_port=%d;server_port=%d\r\n"
 		     "Session: %08X%s\r\n\r\n",
-		     fOurClientConnection->fCurrentCSeq,
+		     ourClientConnection->fCurrentCSeq,
 		     dateHeader(),
 		     streamingModeString, destAddrStr.val(), sourceAddrStr.val(), ntohs(clientRTPPort.num()), ntohs(serverRTPPort.num()),
 		     fOurSessionId, timeoutParameterString);
@@ -2026,7 +2094,7 @@ void RTSPServer::RTSPClientSession
 ::handleCmd_SET_PARAMETER(RTSPServer::RTSPClientConnection* ourClientConnection,
 			  ServerMediaSubsession* /*subsession*/, char const* fullRequestStr) {
   // If we're authenticating, then any attempt to change state should be checked:
-  if (!fOurClientConnection->authenticationOK("SET_PARAMETER", "", fullRequestStr)) return;
+  if (!ourClientConnection->authenticationOK("SET_PARAMETER", "", fullRequestStr)) return;
 
   // By default, we implement "SET_PARAMETER" just as a 'keep alive', and send back an empty response.
   // (If you want to handle "SET_PARAMETER" properly, you can do so by defining a subclass of "RTSPServer"
