@@ -377,8 +377,7 @@ void RTSPServer::RTSPClientConnection
 }
 
 // A class used to implement "DESCRIBE" (possibly asynchronously).  It consists of
-// A "RTSPServer" (pointer), and an id for a "RTSPClientConnection".
-// (Note: not a pointer to a "RTSPClientConnection", in case a connection dies.)
+// a "RTSPServer" (reference), and an id for a "RTSPClientConnection".
 
 class ServerConnectionPair {
 public:
@@ -411,23 +410,22 @@ void RTSPServer::RTSPClientConnection
   // for "application/sdp", because that's what we're sending back #####
     
   // Begin by looking up the "ServerMediaSession" object for the specified "urlTotalSuffix":
-  ServerConnectionPair* serverConnectionPair = new ServerConnectionPair(fOurRTSPServer, id());
-  fOurServer.lookupServerMediaSession(urlTotalSuffix, DESCRIBELookupCompletionFunction,
-				      serverConnectionPair);
+  ServerConnectionPair* scPair = new ServerConnectionPair(fOurRTSPServer, id());
+  fOurServer.lookupServerMediaSession(urlTotalSuffix, DESCRIBELookupCompletionFunction, scPair);
 }
 
 void RTSPServer::RTSPClientConnection
 ::DESCRIBELookupCompletionFunction(void* clientData, ServerMediaSession* smsLookedUp) {
-  ServerConnectionPair* serverConnectionPair = (ServerConnectionPair*)clientData;
-  RTSPServer& server = serverConnectionPair->server();
-  u_int32_t connectionId = serverConnectionPair->connectionId();
+  ServerConnectionPair* scPair = (ServerConnectionPair*)clientData;
+  RTSPServer& server = scPair->server();
+  u_int32_t connectionId = scPair->connectionId();
   RTSPClientConnection* ourClientConnection
     = (RTSPClientConnection*)(server.lookupClientConnection(connectionId));
 
   if (ourClientConnection != NULL) {
     ourClientConnection->handleCmd_DESCRIBE_afterLookup(smsLookedUp);
   }
-  delete serverConnectionPair;
+  delete scPair;
 }
 
 void RTSPServer::RTSPClientConnection
@@ -1393,20 +1391,22 @@ static Boolean parsePlayNowHeader(char const* buf) {
 }
 
 // A class used to implement "SETUP (possibly asynchronously).  It consists of
-// a "RTSPClientSession" (pointer), and an id for a "RTSPClientConnection".
-// (Note: not a pointer to a "RTSPClientConnection", in case a connection dies.)
+// a "RTSPServer" (reference), a "RTSPClientSession" id,
+// andd an id for a "RTSPClientConnection".
 
-class SessionConnectionPair {
+class ServerSessionConnectionTriple {
 public:
-  SessionConnectionPair(RTSPServer::RTSPClientSession* session, u_int32_t connectionId)
-    : fSession(session), fConnectionId(connectionId) {}
-  ~SessionConnectionPair() {}
+  ServerSessionConnectionTriple(RTSPServer& server, u_int32_t sessionId, u_int32_t connectionId)
+    : fServer(server), fSessionId(sessionId), fConnectionId(connectionId) {}
+  ~ServerSessionConnectionTriple() {}
 
-  RTSPServer::RTSPClientSession* session() const { return fSession; }
+  RTSPServer& server() const { return fServer; }
+  u_int32_t sessionId() const { return fSessionId; }
   u_int32_t connectionId() const { return fConnectionId; }
 
 private:
-  RTSPServer::RTSPClientSession* fSession;
+  RTSPServer& fServer;
+  u_int32_t fSessionId;
   u_int32_t fConnectionId;
 };
 
@@ -1423,25 +1423,30 @@ void RTSPServer::RTSPClientSession
 
   // Begin by checking whether the specified stream name exists:
   char const* streamName = urlPreSuffix; // in the normal case
-  SessionConnectionPair* sessionConnectionPair
-    = new SessionConnectionPair(this, ourClientConnection->id());
-  fOurServer.lookupServerMediaSession(streamName, SETUPLookupCompletionFunction1,
-				      sessionConnectionPair,
+  ServerSessionConnectionTriple* sscTriple
+    = new ServerSessionConnectionTriple(fOurRTSPServer, fOurSessionId, ourClientConnection->id());
+  fOurServer.lookupServerMediaSession(streamName, SETUPLookupCompletionFunction1, sscTriple,
 				      fOurServerMediaSession == NULL);
 }
 
 void RTSPServer::RTSPClientSession
 ::SETUPLookupCompletionFunction1(void* clientData, ServerMediaSession* smsLookedUp) {
-  SessionConnectionPair* sessionConnectionPair = (SessionConnectionPair*)clientData;
-  RTSPClientSession* session = sessionConnectionPair->session();
-  u_int32_t connectionId = sessionConnectionPair->connectionId();
-  RTSPClientConnection* ourClientConnection
-    = (RTSPClientConnection*)(session->fOurRTSPServer.lookupClientConnection(connectionId));
+  ServerSessionConnectionTriple* sscTriple = (ServerSessionConnectionTriple*)clientData;
+  RTSPServer& server = sscTriple->server();
 
-  if (ourClientConnection != NULL) {
-    session->handleCmd_SETUP_afterLookup1(ourClientConnection, smsLookedUp);
+  u_int32_t sessionId = sscTriple->sessionId();
+  RTSPClientSession* session = (RTSPClientSession*)(server.lookupClientSession(sessionId));
+
+  if (session != NULL) {
+    u_int32_t connectionId = sscTriple->connectionId();
+    RTSPClientConnection* ourClientConnection
+      = (RTSPClientConnection*)(server.lookupClientConnection(connectionId));
+
+    if (ourClientConnection != NULL) {
+      session->handleCmd_SETUP_afterLookup1(ourClientConnection, smsLookedUp);
+    }
   }
-  delete sessionConnectionPair;
+  delete sscTriple;
 }
 
 void RTSPServer::RTSPClientSession
@@ -1467,25 +1472,31 @@ void RTSPServer::RTSPClientSession
   fTrackId = NULL;
       
   // Check again:
-  SessionConnectionPair* sessionConnectionPair
-    = new SessionConnectionPair(this, ourClientConnection->id());
+  ServerSessionConnectionTriple* sscTriple
+    = new ServerSessionConnectionTriple(fOurRTSPServer, fOurSessionId, ourClientConnection->id());
   fOurServer.lookupServerMediaSession(streamName, SETUPLookupCompletionFunction2,
-				      sessionConnectionPair, fOurServerMediaSession == NULL);
+				      sscTriple, fOurServerMediaSession == NULL);
   delete[] concatenatedStreamName;
 }
 
 void RTSPServer::RTSPClientSession
 ::SETUPLookupCompletionFunction2(void* clientData, ServerMediaSession* smsLookedUp) {
-  SessionConnectionPair* sessionConnectionPair = (SessionConnectionPair*)clientData;
-  RTSPClientSession* session = sessionConnectionPair->session();
-  u_int32_t connectionId = sessionConnectionPair->connectionId();
-  RTSPClientConnection* ourClientConnection
-    = (RTSPClientConnection*)(session->fOurRTSPServer.lookupClientConnection(connectionId));
+  ServerSessionConnectionTriple* sscTriple = (ServerSessionConnectionTriple*)clientData;
+  RTSPServer& server = sscTriple->server();
 
-  if (ourClientConnection != NULL) {
-    session->handleCmd_SETUP_afterLookup2(ourClientConnection, smsLookedUp);
+  u_int32_t sessionId = sscTriple->sessionId();
+  RTSPClientSession* session = (RTSPClientSession*)(server.lookupClientSession(sessionId));
+
+  if (session != NULL) {
+    u_int32_t connectionId = sscTriple->connectionId();
+    RTSPClientConnection* ourClientConnection
+      = (RTSPClientConnection*)(server.lookupClientConnection(connectionId));
+
+    if (ourClientConnection != NULL) {
+      session->handleCmd_SETUP_afterLookup2(ourClientConnection, smsLookedUp);
+    }
   }
-  delete sessionConnectionPair;
+  delete sscTriple;
 }
 
 void RTSPServer::RTSPClientSession
