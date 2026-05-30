@@ -265,11 +265,13 @@ GenericMediaServer::ClientConnection
 ::ClientConnection(GenericMediaServer& ourServer,
 		   int clientSocket, struct sockaddr_storage const& clientAddr,
 		   Boolean useTLS)
-  : fConnectionId(++lastClientConnectionId),
-    fOurServer(ourServer), fOurSocket(clientSocket), fClientAddr(clientAddr), fTLS(envir()) {
+  : fOurServer(ourServer), fOurSocket(clientSocket), fClientAddr(clientAddr), fTLS(envir()) {
   fInputTLS = fOutputTLS = &fTLS;
 
   // Add ourself to our 'client connections' table:
+  do {
+    fConnectionId = ++lastClientConnectionId;
+  } while (fOurServer.fClientConnections->Lookup((char const*)fConnectionId) != NULL);
   fOurServer.fClientConnections->Add((char const*)fConnectionId, this);
   
   if (useTLS) {
