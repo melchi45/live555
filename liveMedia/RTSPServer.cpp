@@ -1273,11 +1273,13 @@ RTSPServer::RTSPClientSession
 ::RTSPClientSession(RTSPServer& ourServer, u_int32_t sessionId)
   : GenericMediaServer::ClientSession(ourServer, sessionId),
     fOurRTSPServer(ourServer), fIsMulticast(False), fStreamAfterSETUP(False),
-    fTCPStreamIdCount(0), fNumStreamStates(0), fStreamStates(NULL) {
+    fTCPStreamIdCount(0), fNumStreamStates(0), fStreamStates(NULL),
+    fURLPreSuffix(NULL), fURLSuffix(NULL), fFullRequestStr(NULL), fTrackId(NULL) {
 }
 
 RTSPServer::RTSPClientSession::~RTSPClientSession() {
   reclaimStreamStates();
+  delete[] fTrackId; delete[] fFullRequestStr; delete[] fURLSuffix; delete[] fURLPreSuffix;
 }
 
 void RTSPServer::RTSPClientSession::deleteStreamByTrack(unsigned trackNum) {
@@ -1392,7 +1394,7 @@ static Boolean parsePlayNowHeader(char const* buf) {
 
 // A class used to implement "SETUP (possibly asynchronously).  It consists of
 // a "RTSPServer" (reference), a "RTSPClientSession" id,
-// andd an id for a "RTSPClientConnection".
+// and an id for a "RTSPClientConnection".
 
 class ServerSessionConnectionTriple {
 public:
@@ -1418,8 +1420,10 @@ void RTSPServer::RTSPClientSession
   // in the special case where we have only a single track.  I.e., in this case, we also handle:
   //    "urlPreSuffix" is empty and "urlSuffix" is the session (stream) name, or
   //    "urlPreSuffix" concatenated with "urlSuffix" (with "/" inbetween) is the session (stream) name.
-  fURLPreSuffix = urlPreSuffix; fURLSuffix = urlSuffix; fFullRequestStr = fullRequestStr;
-  fTrackId = urlSuffix; // in the normal case
+  delete[] fURLPreSuffix; fURLPreSuffix = strDup(urlPreSuffix);
+  delete[] fURLSuffix; fURLSuffix = strDup(urlSuffix);
+  delete[] fFullRequestStr; fFullRequestStr = strDup(fullRequestStr);
+  delete[] fTrackId; fTrackId = strDup(urlSuffix); // in the normal case
 
   // Begin by checking whether the specified stream name exists:
   char const* streamName = urlPreSuffix; // in the normal case
@@ -1469,7 +1473,7 @@ void RTSPServer::RTSPClientSession
     sprintf(concatenatedStreamName, "%s/%s", fURLPreSuffix, fURLSuffix);
     streamName = concatenatedStreamName;
   }
-  fTrackId = NULL;
+  delete[] fTrackId; fTrackId = NULL;
       
   // Check again:
   ServerSessionConnectionTriple* sscTriple

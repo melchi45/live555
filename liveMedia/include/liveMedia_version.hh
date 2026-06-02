@@ -19,8 +19,8 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #ifndef _LIVEMEDIA_VERSION_HH
 #define _LIVEMEDIA_VERSION_HH
 
-#define LIVEMEDIA_LIBRARY_VERSION_STRING	"2026.05.30"
-#define LIVEMEDIA_LIBRARY_VERSION_INT		1780099200
+#define LIVEMEDIA_LIBRARY_VERSION_STRING	"2026.06.01"
+#define LIVEMEDIA_LIBRARY_VERSION_INT		1780272000
 
 extern char const* const liveMediaLibraryVersionStr;
 extern int const liveMediaLibraryVersionInt;
