@@ -1317,16 +1317,16 @@ typedef enum StreamingMode {
   RAW_UDP
 } StreamingMode;
 
-static void parseTransportHeader(char const* buf,
-				 StreamingMode& streamingMode,
-				 char*& streamingModeString,
-				 char*& destinationAddressStr,
-				 u_int8_t& destinationTTL,
-				 portNumBits& clientRTPPortNum, // if UDP
-				 portNumBits& clientRTCPPortNum, // if UDP
-				 unsigned char& rtpChannelId, // if TCP
-				 unsigned char& rtcpChannelId // if TCP
-				 ) {
+static Boolean parseTransportHeader(char const* buf,
+				    StreamingMode& streamingMode,
+				    char*& streamingModeString,
+				    char*& destinationAddressStr,
+				    u_int8_t& destinationTTL,
+				    portNumBits& clientRTPPortNum, // if UDP
+				    portNumBits& clientRTCPPortNum, // if UDP
+				    unsigned char& rtpChannelId, // if TCP
+				    unsigned char& rtcpChannelId // if TCP
+				    ) {
   // Initialize the result parameters to default values:
   streamingMode = RTP_UDP;
   streamingModeString = NULL;
@@ -1341,8 +1341,8 @@ static void parseTransportHeader(char const* buf,
   
   // First, find "Transport:"
   while (1) {
-    if (*buf == '\0') return; // not found
-    if (*buf == '\r' && *(buf+1) == '\n' && *(buf+2) == '\r') return; // end of the headers => not found
+    if (*buf == '\0') return False; // not found
+    if (*buf == '\r' && *(buf+1) == '\n' && *(buf+2) == '\r') return False; // end of the headers => not found
     if (_strncasecmp(buf, "Transport:", 10) == 0) break;
     ++buf;
   }
@@ -1379,6 +1379,7 @@ static void parseTransportHeader(char const* buf,
     if (*fields == '\0' || *fields == '\r' || *fields == '\n') break;
   }
   delete[] field;
+  return True;
 }
 
 static Boolean parsePlayNowHeader(char const* buf) {
@@ -1595,10 +1596,13 @@ void RTSPServer::RTSPClientSession
     u_int8_t clientsDestinationTTL;
     portNumBits clientRTPPortNum, clientRTCPPortNum;
     unsigned char rtpChannelId, rtcpChannelId;
-    parseTransportHeader(fFullRequestStr, streamingMode, streamingModeString,
-			 clientsDestinationAddressStr, clientsDestinationTTL,
-			 clientRTPPortNum, clientRTCPPortNum,
-			 rtpChannelId, rtcpChannelId);
+    if (!parseTransportHeader(fFullRequestStr, streamingMode, streamingModeString,
+			      clientsDestinationAddressStr, clientsDestinationTTL,
+			      clientRTPPortNum, clientRTCPPortNum,
+			      rtpChannelId, rtcpChannelId)) {
+      ourClientConnection->handleCmd_unsupportedTransport();
+      break;
+    }
     if ((streamingMode == RTP_TCP && rtpChannelId == 0xFF) ||
 	(streamingMode != RTP_TCP && ourClientConnection->fClientOutputSocket != ourClientConnection->fClientInputSocket)) {
       // An anomolous situation, caused by a buggy client.  Either:
