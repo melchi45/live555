@@ -272,8 +272,8 @@ Boolean parseRangeParam(char const* paramStr,
       delete[] as; delete[] ae;
       return False;
     }
-  } else if (sscanf(paramStr, "smtpe = %n", &numCharsMatched4) == 0 && numCharsMatched4 > 0) {
-    // We accept "smtpe=" parameters, but currently do not interpret them.
+  } else if (sscanf(paramStr, "smpte = %n", &numCharsMatched4) == 0 && numCharsMatched4 > 0) {
+    // We accept "smpte=" parameters, but currently do not interpret them.
   } else {
     return False; // The header is malformed
   }
