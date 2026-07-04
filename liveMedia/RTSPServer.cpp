@@ -1580,15 +1580,6 @@ void RTSPServer::RTSPClientSession
     }
     // ASSERT: subsession != NULL
     
-    void*& token = fStreamStates[trackNum].streamToken; // alias
-    if (token != NULL) {
-      // We already handled a "SETUP" for this track (to the same client),
-      // so stop any existing streaming of it, before we set it up again:
-      subsession->pauseStream(fOurSessionId, token);
-      fOurRTSPServer.unnoteTCPStreamingOnSocket(fStreamStates[trackNum].tcpSocketNum, this, trackNum);
-      subsession->deleteStream(fOurSessionId, token);
-    }
-
     // Look for a "Transport:" header in the request string, to extract client parameters:
     StreamingMode streamingMode;
     char* streamingModeString = NULL; // set when RAW_UDP streaming is specified
@@ -1605,7 +1596,7 @@ void RTSPServer::RTSPClientSession
     }
     if ((streamingMode == RTP_TCP && rtpChannelId == 0xFF) ||
 	(streamingMode != RTP_TCP && ourClientConnection->fClientOutputSocket != ourClientConnection->fClientInputSocket)) {
-      // An anomolous situation, caused by a buggy client.  Either:
+      // An anomalous situation, caused by a buggy client.  Either:
       //     1/ TCP streaming was requested, but with no "interleaving=" fields.  (QuickTime Player sometimes does this.), or
       //     2/ TCP streaming was not requested, but we're doing RTSP-over-HTTP tunneling (which implies TCP streaming).
       // In either case, we assume TCP streaming, and set the RTP and RTCP channel ids to proper values:
@@ -1613,9 +1604,6 @@ void RTSPServer::RTSPClientSession
       rtpChannelId = fTCPStreamIdCount; rtcpChannelId = fTCPStreamIdCount+1;
     }
     if (streamingMode == RTP_TCP) fTCPStreamIdCount += 2;
-    
-    Port clientRTPPort(clientRTPPortNum);
-    Port clientRTCPPort(clientRTCPPortNum);
     
     // Next, check whether a "Range:" or "x-playNow:" header is present in the request.
     // This isn't legal, but some clients do this to combine "SETUP" and "PLAY":
@@ -1631,6 +1619,15 @@ void RTSPServer::RTSPClientSession
       fStreamAfterSETUP = False;
     }
     
+    void*& token = fStreamStates[trackNum].streamToken; // alias
+    if (token != NULL) {
+      // We already handled a "SETUP" for this track (to the same client),
+      // so stop any existing streaming of it, before we set it up again:
+      subsession->pauseStream(fOurSessionId, token);
+      fOurRTSPServer.unnoteTCPStreamingOnSocket(fStreamStates[trackNum].tcpSocketNum, this, trackNum);
+      subsession->deleteStream(fOurSessionId, token);
+    }
+
     // Then, get server parameters from the 'subsession':
     if (streamingMode == RTP_TCP) {
       // Note that we'll be streaming over the RTSP TCP connection:
@@ -1662,6 +1659,9 @@ void RTSPServer::RTSPClientSession
     // (in case we're a multi-homed server):
     struct sockaddr_storage sourceAddr; SOCKLEN_T namelen = sizeof sourceAddr;
     getsockname(ourClientConnection->fClientInputSocket, (struct sockaddr*)&sourceAddr, &namelen);
+    
+    Port clientRTPPort(clientRTPPortNum);
+    Port clientRTCPPort(clientRTCPPortNum);
     
     subsession->getStreamParameters(fOurSessionId, ourClientConnection->fClientAddr,
 				    clientRTPPort, clientRTCPPort,
