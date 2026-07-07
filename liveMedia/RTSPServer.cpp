@@ -886,36 +886,33 @@ void RTSPServer::RTSPClientConnection::handleRequestBytes(int newBytesRead) {
       } else if (strcmp(cmdName, "DESCRIBE") == 0) {
 	handleCmd_DESCRIBE(urlPreSuffix, urlSuffix, (char const*)fRequestBuffer);
       } else if (strcmp(cmdName, "SETUP") == 0) {
-	Boolean areAuthenticated = True;
+	// First, make sure that we're authenticated to perform this command:
+	char urlTotalSuffix[2*RTSP_PARAM_STRING_MAX];
+	    // enough space for urlPreSuffix/urlSuffix'\0'
+	urlTotalSuffix[0] = '\0';
+	if (urlPreSuffix[0] != '\0') {
+	  strcat(urlTotalSuffix, urlPreSuffix);
+	  strcat(urlTotalSuffix, "/");
+	}
+	strcat(urlTotalSuffix, urlSuffix);
 
-	if (!requestIncludedSessionId) {
-	  // No session id was present in the request.
-	  // So create a new "RTSPClientSession" object for this request.
-
-	  // But first, make sure that we're authenticated to perform this command:
-	  char urlTotalSuffix[2*RTSP_PARAM_STRING_MAX];
-	      // enough space for urlPreSuffix/urlSuffix'\0'
-	  urlTotalSuffix[0] = '\0';
-	  if (urlPreSuffix[0] != '\0') {
-	    strcat(urlTotalSuffix, urlPreSuffix);
-	    strcat(urlTotalSuffix, "/");
-	  }
-	  strcat(urlTotalSuffix, urlSuffix);
-	  if (authenticationOK("SETUP", urlTotalSuffix, (char const*)fRequestBuffer)) {
+	if (authenticationOK("SETUP", urlTotalSuffix, (char const*)fRequestBuffer)) {
+	  if (!requestIncludedSessionId) {
+	    // No session id was present in the request.
+	    // So create a new "RTSPClientSession" object for this request.
 	    clientSession
 	      = (RTSPServer::RTSPClientSession*)fOurRTSPServer.createNewClientSessionWithId();
-	  } else {
-	    areAuthenticated = False;
 	  }
-	}
-	if (clientSession != NULL) {
-	  clientSession->handleCmd_SETUP(this, urlPreSuffix, urlSuffix, (char const*)fRequestBuffer);
-	  playAfterSetup = clientSession->fStreamAfterSETUP;
-	} else if (areAuthenticated) {
+
+	  if (clientSession != NULL) {
+	    clientSession->handleCmd_SETUP(this, urlPreSuffix, urlSuffix, (char const*)fRequestBuffer);
+	    playAfterSetup = clientSession->fStreamAfterSETUP;
+	  } else {
 #ifdef DEBUG
-	  fprintf(stderr, "Calling handleCmd_sessionNotFound() (case 2)\n");
+	    fprintf(stderr, "Calling handleCmd_sessionNotFound() (case 2)\n");
 #endif
-	  handleCmd_sessionNotFound();
+	    handleCmd_sessionNotFound();
+	  }
 	}
       } else if (strcmp(cmdName, "TEARDOWN") == 0
 		 || strcmp(cmdName, "PLAY") == 0
