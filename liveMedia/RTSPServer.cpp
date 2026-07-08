@@ -628,6 +628,9 @@ void RTSPServer::RTSPClientConnection::handleHTTPCmd_TunnelingGET(char const* se
   // can find us:
   if (fOurRTSPServer.fClientConnectionsForHTTPTunneling == NULL) {
     fOurRTSPServer.fClientConnectionsForHTTPTunneling = HashTable::create(STRING_HASH_KEYS);
+  } else if (fOurSessionCookie != NULL) {
+    // This connection can have only one 'session cookie' in use at one time:
+    fOurRTSPServer.fClientConnectionsForHTTPTunneling->Remove(fOurSessionCookie);
   }
   delete[] fOurSessionCookie; fOurSessionCookie = strDup(sessionCookie);
   fOurRTSPServer.fClientConnectionsForHTTPTunneling->Add(sessionCookie, (void*)this);
