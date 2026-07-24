@@ -1312,6 +1312,7 @@ void RTSPServer::RTSPClientSession::reclaimStreamStates() {
 }
 
 typedef enum StreamingMode {
+  UNKNOWN,
   RTP_UDP,
   RTP_TCP,
   RAW_UDP
@@ -1324,20 +1325,19 @@ static Boolean parseTransportHeader(char const* buf,
 				    u_int8_t& destinationTTL,
 				    portNumBits& clientRTPPortNum, // if UDP
 				    portNumBits& clientRTCPPortNum, // if UDP
-				    unsigned char& rtpChannelId, // if TCP
-				    unsigned char& rtcpChannelId // if TCP
+				    u_int8_t& rtpChannelId, // if TCP
+				    u_int8_t& rtcpChannelId // if TCP
 				    ) {
   // Initialize the result parameters to default values:
-  streamingMode = RTP_UDP;
+  streamingMode = UNKNOWN;
   streamingModeString = NULL;
   destinationAddressStr = NULL;
-  destinationTTL = 255;
+  destinationTTL = 0xFF;
   clientRTPPortNum = 0;
   clientRTCPPortNum = 1;
   rtpChannelId = rtcpChannelId = 0xFF;
   
-  portNumBits p1, p2;
-  unsigned ttl, rtpCid, rtcpCid;
+  unsigned p1, p2, ttl, rtpCid, rtcpCid;
   
   // First, find "Transport:"
   while (1) {
@@ -1350,35 +1350,68 @@ static Boolean parseTransportHeader(char const* buf,
   // Then, run through each of the fields, looking for ones we handle:
   char const* fields = buf + 10;
   while (*fields == ' ') ++fields;
+
+  Boolean badFieldSeen = True; // until we learn otherwise
+  Boolean ttlSeen = False; Boolean clientPortSeen = False; Boolean interleavedSeen = False;
   char* field = strDupSize(fields);
   while (sscanf(fields, "%[^;\r\n]", field) == 1) {
+    badFieldSeen = True; // until we learn otherwise
     if (strcmp(field, "RTP/AVP/TCP") == 0) {
+      if (streamingMode != UNKNOWN) break; // more than one 'streaming mode' is not allowed
+
       streamingMode = RTP_TCP;
-    } else if (strcmp(field, "RAW/RAW/UDP") == 0 ||
-	       strcmp(field, "MP2T/H2221/UDP") == 0) {
+    } else if (strcmp(field, "RTP/AVP") == 0 || strcmp(field, "RTP/AVP/SAVP") == 0) {
+      if (streamingMode != UNKNOWN) break; // more than one 'streaming mode' is not allowed
+
+      streamingMode = RTP_UDP;
+    } else if (strcmp(field, "RAW/RAW/UDP") == 0 || strcmp(field, "MP2T/H2221/UDP") == 0) {
+      if (streamingMode != UNKNOWN) break; // more than one 'streaming mode' is not allowed
+
       streamingMode = RAW_UDP;
       streamingModeString = strDup(field);
     } else if (_strncasecmp(field, "destination=", 12) == 0) {
-      delete[] destinationAddressStr;
+      if (destinationAddressStr != NULL) { // more than one "destination=" is not allowed
+	delete[] destinationAddressStr; destinationAddressStr = NULL;
+	break;
+      }
+
       destinationAddressStr = strDup(field+12);
-    } else if (sscanf(field, "ttl%u", &ttl) == 1) {
+    } else if (sscanf(field, "ttl=%u", &ttl) == 1) {
+      if (ttlSeen) break; ttlSeen = True;
+      if (ttl > 0xFF) break;
+
       destinationTTL = (u_int8_t)ttl;
-    } else if (sscanf(field, "client_port=%hu-%hu", &p1, &p2) == 2) {
-      clientRTPPortNum = p1;
-      clientRTCPPortNum = streamingMode == RAW_UDP ? 0 : p2; // ignore the second port number if the client asked for raw UDP
-    } else if (sscanf(field, "client_port=%hu", &p1) == 1) {
-      clientRTPPortNum = p1;
-      clientRTCPPortNum = streamingMode == RAW_UDP ? 0 : p1 + 1;
+    } else if (sscanf(field, "client_port=%u-%u", &p1, &p2) == 2) {
+      if (clientPortSeen) break; clientPortSeen = True;
+      if (p1 > 0xFFFF || p2 > 0xFFFF) break;
+
+      clientRTPPortNum = (portNumBits)p1;
+      clientRTCPPortNum = streamingMode == RAW_UDP ? 0 : (portNumBits)p2;
+          // ignore the second port number if the client asked for raw UDP
+    } else if (sscanf(field, "client_port=%u", &p1) == 1) {
+      if (clientPortSeen) break; clientPortSeen = True;
+      if (p1 > 0xFFFF || (p1 == 0xFFFF && streamingMode != RAW_UDP)) break;
+
+      clientRTPPortNum = (portNumBits)p1;
+      clientRTCPPortNum = streamingMode == RAW_UDP ? 0 : (portNumBits)(p1+1);
     } else if (sscanf(field, "interleaved=%u-%u", &rtpCid, &rtcpCid) == 2) {
-      rtpChannelId = (unsigned char)rtpCid;
-      rtcpChannelId = (unsigned char)rtcpCid;
+      if (interleavedSeen) break; interleavedSeen = True;
+      if (rtpCid > 0xFF || rtcpCid > 0xFF) break;
+
+      rtpChannelId = (u_int8_t)rtpCid;
+      rtcpChannelId = (u_int8_t)rtcpCid;
     }
+    badFieldSeen = False;
     
     fields += strlen(field);
     while (*fields == ';' || *fields == ' ' || *fields == '\t') ++fields; // skip over separating ';' chars or whitespace
     if (*fields == '\0' || *fields == '\r' || *fields == '\n') break;
   }
   delete[] field;
+
+  if (badFieldSeen) return False;
+  if (streamingMode == UNKNOWN) return False; // no 'streaming mode' was specified
+
   return True;
 }
 
@@ -1683,6 +1716,10 @@ void RTSPServer::RTSPClientSession
     }
     if (fIsMulticast) {
       switch (streamingMode) {
+          case UNKNOWN: { // shouldn't happen
+	    ourClientConnection->handleCmd_unsupportedTransport();
+	    break;
+	  }
           case RTP_UDP: {
 	    snprintf((char*)ourClientConnection->fResponseBuffer, sizeof ourClientConnection->fResponseBuffer,
 		     "RTSP/1.0 200 OK\r\n"
@@ -1718,6 +1755,10 @@ void RTSPServer::RTSPClientSession
       }
     } else {
       switch (streamingMode) {
+          case UNKNOWN: { // shouldn't happen
+	    ourClientConnection->handleCmd_unsupportedTransport();
+	    break;
+	  }
           case RTP_UDP: {
 	    snprintf((char*)ourClientConnection->fResponseBuffer, sizeof ourClientConnection->fResponseBuffer,
 		     "RTSP/1.0 200 OK\r\n"

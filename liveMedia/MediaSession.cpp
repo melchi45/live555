@@ -390,10 +390,10 @@ static Boolean parseRangeAttribute(char const* sdpLine, char*& absStartTime, cha
   char* ae = new char[len];
   int sscanfResult = sscanf(sdpLine, "a=range: clock = %[^-\r\n]-%[^\r\n]", as, ae);
   if (sscanfResult == 2) {
-    absStartTime = as;
-    absEndTime = ae;
+    delete[] absStartTime; absStartTime = as;
+    delete[] absEndTime; absEndTime = ae;
   } else if (sscanfResult == 1) {
-    absStartTime = as;
+    delete[] absStartTime; absStartTime = as;
     delete[] ae;
   } else {
     delete[] as; delete[] ae;
