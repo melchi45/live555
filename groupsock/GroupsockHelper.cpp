@@ -420,7 +420,7 @@ int readSocket(UsageEnvironment& env,
   if (bytesRead < 0) {
     //##### HACK to work around bugs in Linux and Windows:
     int err = env.getErrno();
-    if (err == 111 /*ECONNREFUSED (Linux)*/
+    if (err == ECONNREFUSED /*(Linux)*/
 #if defined(__WIN32__) || defined(_WIN32)
 	// What a piece of crap Windows is.  Sometimes
 	// recvfrom() returns -1, but with an 'errno' of 0.
@@ -432,7 +432,7 @@ int readSocket(UsageEnvironment& env,
 #else
 	|| err == EAGAIN
 #endif
-	|| err == 113 /*EHOSTUNREACH (Linux)*/) { // Why does Linux return this for datagram sock?
+	|| err == EHOSTUNREACH /*(Linux)*/) { // Why does Linux return this for datagram sock?
       return 0;
     }
     //##### END HACK
