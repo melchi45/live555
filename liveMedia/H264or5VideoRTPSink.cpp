@@ -116,8 +116,9 @@ Boolean H264or5VideoRTPSink::continuePlaying() {
   // First, check whether we have a 'fragmenter' class set up yet.
   // If not, create it now:
   if (fOurFragmenter == NULL) {
-    fOurFragmenter = new H264or5Fragmenter(fHNumber, envir(), fSource, OutPacketBuffer::maxSize,
-					   ourMaxPacketSize() - 12/*RTP hdr size*/);
+    fOurFragmenter
+      = new H264or5Fragmenter(fHNumber, envir(), fSource, OutPacketBuffer::maxSize,
+			      ourMaxPacketSize() - 12/*RTP hdr size*/ - specialHeaderSize());
   } else {
     fOurFragmenter->reassignInputSource(fSource);
   }
