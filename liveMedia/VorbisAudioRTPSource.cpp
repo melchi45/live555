@@ -183,13 +183,16 @@ void parseVorbisOrTheoraConfigStr(char const* configStr,
 
     // Copy the remaining config bytes into the appropriate 'header' buffers:
     if (identificationHdr != NULL) {
+      if (rem < identificationHdrSize) break;
       memmove(identificationHdr, p, identificationHdrSize); ADVANCE(identificationHdrSize);
-      if (commentHdr != NULL) {
-        memmove(commentHdr, p, commentHdrSize); ADVANCE(commentHdrSize);
-	if (setupHdr != NULL) {
-          memmove(setupHdr, p, setupHdrSize); ADVANCE(setupHdrSize);
-        }
-      }
+    }
+    if (commentHdr != NULL) {
+      if (rem < commentHdrSize) break;
+      memmove(commentHdr, p, commentHdrSize); ADVANCE(commentHdrSize);
+    }
+    if (setupHdr != NULL) {
+      if (rem < setupHdrSize) break;
+      memmove(setupHdr, p, setupHdrSize); ADVANCE(setupHdrSize);
     }
   } while (0);
 
