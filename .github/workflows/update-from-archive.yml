@@ -31,6 +31,30 @@ jobs:
             | head -1 | cut -f1 -d"/")
           echo "ARCHIVE_ROOT=$ARCHIVE_ROOT" >> "$GITHUB_ENV"
 
+      - name: Fetch changelog entry
+        run: |
+          # The archive and changelog.txt are published together upstream
+          # (verified: identical Last-Modified timestamps), so the archive's
+          # Last-Modified date reliably identifies which changelog entry
+          # explains this update, regardless of when this workflow happens
+          # to run relative to the upstream release.
+          LAST_MOD=$(curl -sI "https://download.live555.com/live555-latest.tar.gz" \
+            | grep -i '^Last-Modified:' | sed -E 's/^[Ll]ast-[Mm]odified:[[:space:]]*//' | tr -d '\r')
+          ARCHIVE_DATE=$(date -u -d "$LAST_MOD" +'%Y.%m.%d')
+          echo "ARCHIVE_DATE=$ARCHIVE_DATE" >> "$GITHUB_ENV"
+
+          curl -L "https://download.live555.com/changelog.txt" -o /tmp/changelog.txt
+
+          # Extract just the top (most recent) entry block: its date line
+          # plus every bullet line up to the next date line.
+          awk '/^[0-9][0-9][0-9][0-9]\.[0-9][0-9]\.[0-9][0-9]:$/{n++} n==1{print} n==2{exit}' \
+            /tmp/changelog.txt > /tmp/changelog_entry.txt
+
+          CHANGELOG_DATE=$(head -1 /tmp/changelog_entry.txt | tr -d ':')
+          if [ "$CHANGELOG_DATE" != "$ARCHIVE_DATE" ]; then
+            echo "::warning::changelog.txt top entry date ($CHANGELOG_DATE) does not match archive Last-Modified date ($ARCHIVE_DATE); using it anyway."
+          fi
+
       - name: Check diff between repo and extracted archive
         id: diff_check
         run: |
@@ -89,7 +113,12 @@ jobs:
           git config user.name "melchi45"
           git config user.email "melchi45@gmail.com"
           git add .
-          git commit -m "Update from remote archive $(date +'%Y-%m-%d')"
+          if [ -s /tmp/changelog_entry.txt ]; then
+            git commit -m "Update from remote archive $(date +'%Y-%m-%d')" \
+              -m "$(cat /tmp/changelog_entry.txt)"
+          else
+            git commit -m "Update from remote archive $(date +'%Y-%m-%d')"
+          fi
 
       - name: Push changes
         if: steps.diff_check.outputs.has_changes == 'true'
