@@ -10,6 +10,9 @@ on:
   pull_request:
     branches: [ master ]
 
+permissions:
+  contents: write
+
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
@@ -22,17 +25,12 @@ jobs:
   create_release:
     name: Create release
     runs-on: ubuntu-latest
-    outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
     steps:
       - name: Create Release
         id: create_release
-        uses: actions/create-release@latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{env.BUILD_TYPE}} ${{ github.ref }}
+          name: ${{env.BUILD_TYPE}} ${{ github.ref_name }}
           body: |
             Automated Release by GitHub Action CI
           draft: false
@@ -50,7 +48,7 @@ jobs:
 #         kind: [x86, x64]
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 #       id: checkout
     - name: Set output
       id: vars
@@ -103,25 +101,11 @@ jobs:
           
     - name: upload-archive-static
       id: upload-release-asset_static
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token, https://github.com/settings/tokens
+      uses: softprops/action-gh-release@v3
       with:
-        upload_url: ${{ needs.create_release.outputs.upload_url }}
-        asset_path: ${{ env.ARCHIVE_NAME }}_static.tar.gz
-        asset_name: ${{ env.ARCHIVE_NAME }}_static.tar.gz
-        asset_content_type: application/gzip
-    
-    - name: upload-checksum-static
-      id: upload-checksum_static
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token, https://github.com/settings/tokens
-      with:
-        upload_url: ${{ needs.create_release.outputs.upload_url }}
-        asset_path: checksum_static.txt
-        asset_name: checksum_static.txt
-        asset_content_type: text/plain
+        files: |
+          ${{ env.ARCHIVE_NAME }}_static.tar.gz
+          checksum_static.txt
 
   build_linux_shared:
     # The CMake configure and build commands are platform agnostic and should work equally
@@ -135,7 +119,7 @@ jobs:
 #         kind: [x86, x64]
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 #       id: checkout
     - name: Set output
       id: vars
@@ -188,25 +172,11 @@ jobs:
           
     - name: upload-archive-shared
       id: upload-release-asset_shared
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token, https://github.com/settings/tokens
+      uses: softprops/action-gh-release@v3
       with:
-        upload_url: ${{ needs.create_release.outputs.upload_url }}
-        asset_path: ${{ env.ARCHIVE_NAME }}_shared.tar.gz
-        asset_name: ${{ env.ARCHIVE_NAME }}_shared.tar.gz
-        asset_content_type: application/gzip
-       
-    - name: upload-checksum-shared
-      id: upload-checksum_shared
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token, https://github.com/settings/tokens
-      with:
-        upload_url: ${{ needs.create_release.outputs.upload_url }}
-        asset_path: checksum_shared.txt
-        asset_name: checksum_shared.txt
-        asset_content_type: text/plain
+        files: |
+          ${{ env.ARCHIVE_NAME }}_shared.tar.gz
+          checksum_shared.txt
         
   build_windows_static:
     name: Windows Static Build
@@ -224,7 +194,7 @@ jobs:
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
         
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 #       id: checkout
       - name: Set output
         id: vars
@@ -237,7 +207,7 @@ jobs:
           echo "${{ steps.vars.outputs.tag }}"
 
       - name: Add MSBuild to PATH
-        uses: microsoft/setup-msbuild@v1
+        uses: microsoft/setup-msbuild@v3
 
       - name: Installing vcpkg
         run: |
@@ -278,16 +248,11 @@ jobs:
 #             draft: false
 #             prerelease: false
 
-      - name: upload-archive-shared
-        id: upload-release-asset_shared
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token, https://github.com/settings/tokens
+      - name: upload-archive-static
+        id: upload-release-asset_static
+        uses: softprops/action-gh-release@v3
         with:
-          upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: ${{ env.ARCHIVE_NAME }}_static_win64.zip
-          asset_name: ${{ env.ARCHIVE_NAME }}_static_win64.zip
-          asset_content_type: application/gzip
+          files: ${{ env.ARCHIVE_NAME }}_static_win64.zip
           
   build_windows_shared:
     name: Windows Shared Build
@@ -305,7 +270,7 @@ jobs:
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
         
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 #       id: checkout
       - name: Set output
         id: vars
@@ -318,7 +283,7 @@ jobs:
           echo "${{ steps.vars.outputs.tag }}"
 
       - name: Add MSBuild to PATH
-        uses: microsoft/setup-msbuild@v1
+        uses: microsoft/setup-msbuild@v3
 
       - name: Installing vcpkg
         run: |
@@ -361,11 +326,6 @@ jobs:
 
       - name: upload-archive-shared
         id: upload-release-asset_shared
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token, https://github.com/settings/tokens
+        uses: softprops/action-gh-release@v3
         with:
-          upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: ${{ env.ARCHIVE_NAME }}_shared_win64.zip
-          asset_name: ${{ env.ARCHIVE_NAME }}_shared_win64.zip
-          asset_content_type: application/gzip
+          files: ${{ env.ARCHIVE_NAME }}_shared_win64.zip
