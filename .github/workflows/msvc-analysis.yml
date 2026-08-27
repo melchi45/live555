@@ -33,7 +33,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Configure CMake
         run: cmake -B ${{ env.build }} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DLIVE555_ENABLE_OPENSSL=OFF
@@ -51,11 +51,26 @@ jobs:
           # Ruleset file that will determine what checks will be run
           ruleset: NativeRecommendedRules.ruleset
 
+      # msvc-code-analysis-action runs the analyzer once per compile target,
+      # producing one SARIF "run" per target (this repo has far more than
+      # that). GitHub Code Scanning rejects any upload with more than 20
+      # runs, so merge the same-tool runs into one before uploading. The
+      # action itself never picked up this fix; see
+      # https://github.com/microsoft/msvc-code-analysis-action/issues/25
+      - name: Merge SARIF runs
+        shell: bash
+        run: |
+          dotnet tool install --global Sarif.Multitool --version 5.7.0
+          sarif merge "${{ steps.run-analysis.outputs.sarif }}" \
+            --output-directory "${{ env.build }}" \
+            --output-file results-merged.sarif \
+            --log ForceOverwrite
+
       # Upload SARIF file to GitHub Code Scanning Alerts
       - name: Upload SARIF to GitHub
-        uses: github/codeql-action/upload-sarif@v1
+        uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: ${{ steps.run-analysis.outputs.sarif }}
+          sarif_file: ${{ env.build }}/results-merged.sarif
 
       # Upload SARIF file as an Artifact to download and view
       # - name: Upload SARIF as an Artifact
