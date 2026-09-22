@@ -451,8 +451,9 @@ unsigned JPEGBufferedPacket
 ::nextEnclosedFrameSize(unsigned char*& framePtr, unsigned dataSize) {
   // Normally, the enclosed frame size is just "dataSize".  If, however,
   // the frame does not end with the "EOI" marker, then add this now:
-  if (completesFrame && dataSize >= 2 &&
-      !(framePtr[dataSize-2] == 0xFF && framePtr[dataSize-1] == MARKER_EOI)) {
+  if (completesFrame && dataSize >= 2
+      && !(framePtr[dataSize-2] == 0xFF && framePtr[dataSize-1] == MARKER_EOI)
+      && framePtr + dataSize + 2 <= fBuf + fPacketSize /* do we have enough space for this */) {
     framePtr[dataSize++] = 0xFF;
     framePtr[dataSize++] = MARKER_EOI;
   }
