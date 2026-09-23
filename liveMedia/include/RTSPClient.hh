@@ -298,7 +298,7 @@ private:
   Boolean handlePLAYResponse(MediaSession* session, MediaSubsession* subsession,
                              char const* scaleParamsStr, const char* speedParamsStr,
 			     char const* rangeParamsStr, char const* rtpInfoParamsStr);
-  Boolean handleTEARDOWNResponse(MediaSession& session, MediaSubsession& subsession);
+  Boolean handleTEARDOWNResponse();
   Boolean handleGET_PARAMETERResponse(char const* parameterName, char*& resultValueString, char* resultValueStringEnd);
   Boolean handleAuthenticationFailure(char const* wwwAuthenticateParamsStr);
   Boolean resendCommand(RequestRecord* request);

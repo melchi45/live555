@@ -1324,7 +1324,6 @@ Boolean RTSPClient::handlePLAYResponse(MediaSession* session, MediaSubsession* s
       rangeOK = True;
 
       MediaSubsessionIterator iter(*session);
-      MediaSubsession* subsession;
       while ((subsession = iter.next()) != NULL) {
 	subsession->scale() = session->scale();
 	subsession->speed() = session->speed();
@@ -1340,7 +1339,7 @@ Boolean RTSPClient::handlePLAYResponse(MediaSession* session, MediaSubsession* s
 	if (subsession->rtpSource() != NULL) subsession->rtpSource()->enableRTCPReports() = True; // start sending RTCP "RR"s now
       }
     } else {
-      // The command was on a subsession
+      // The command was on a subsession (ASSERT: subsession != NULL)
       if (scaleParamsStr != NULL && !parseScaleParam(scaleParamsStr, subsession->scale())) break;
       scaleOK = True;
       if (speedParamsStr != NULL && !parseSpeedParam(speedParamsStr, subsession->speed())) break;
@@ -1380,8 +1379,9 @@ Boolean RTSPClient::handlePLAYResponse(MediaSession* session, MediaSubsession* s
   return False;
 }
 
-Boolean RTSPClient::handleTEARDOWNResponse(MediaSession& /*session*/, MediaSubsession& /*subsession*/) {
-  // Because we don't expect to always get a response to "TEARDOWN", we don't need to do anything if we do get one:
+Boolean RTSPClient::handleTEARDOWNResponse() {
+  // Because we don't expect to always get a response to "TEARDOWN",
+  // we don't need to do anything if we do get one:
   return True;
 }
 
@@ -1943,11 +1943,11 @@ void RTSPClient::handleResponseBytes(int newBytesRead) {
 	if (responseCode == 200) {
 	  // Do special-case response handling for some commands:
 	  if (strcmp(foundRequest->commandName(), "SETUP") == 0) {
-        if (!handleSETUPResponse(*foundRequest->subsession(), sessionParamsStr, transportParamsStr, foundRequest->booleanFlags()&0x1)) break;
+	    if (!handleSETUPResponse(*foundRequest->subsession(), sessionParamsStr, transportParamsStr, foundRequest->booleanFlags()&0x1)) break;
 	  } else if (strcmp(foundRequest->commandName(), "PLAY") == 0) {
-        if (!handlePLAYResponse(foundRequest->session(), foundRequest->subsession(), scaleParamsStr, speedParamsStr, rangeParamsStr, rtpInfoParamsStr)) break;
+	    if (!handlePLAYResponse(foundRequest->session(), foundRequest->subsession(), scaleParamsStr, speedParamsStr, rangeParamsStr, rtpInfoParamsStr)) break;
 	  } else if (strcmp(foundRequest->commandName(), "TEARDOWN") == 0) {
-	    if (!handleTEARDOWNResponse(*foundRequest->session(), *foundRequest->subsession())) break;
+	    if (!handleTEARDOWNResponse()) break;
 	  } else if (strcmp(foundRequest->commandName(), "GET_PARAMETER") == 0) {
 	    if (!handleGET_PARAMETERResponse(foundRequest->contentStr(), bodyStart, responseEnd)) break;
 	  }
@@ -1963,6 +1963,7 @@ void RTSPClient::handleResponseBytes(int newBytesRead) {
 	  }
 	} else if (responseCode == 301 || responseCode == 302) { // redirection
 	  resetTCPSockets(); // because we need to connect somewhere else next
+	  fCurrentAuthenticator.reset();
 	  needToResendCommand = True;
 	}
 	
