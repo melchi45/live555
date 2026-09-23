@@ -1490,8 +1490,10 @@ Boolean MediaSubsession::createSourceObjects(int useSpecialRTPoffset) {
 ////////// SDPAttribute implementation //////////
 
 SDPAttribute::SDPAttribute(char const* strValue, Boolean valueIsHexadecimal)
-  : fStrValue(strDup(strValue)), fStrValueToLower(NULL), fValueIsHexadecimal(valueIsHexadecimal) {
+  : fStrValue(strDup(strValue)), fStrValueToLower(NULL),
+    fIntValue(0), fValueIsHexadecimal(valueIsHexadecimal) {
   if (fStrValue == NULL) {
+    fStrValue = strDup("");
     // No value was given for this attribute, so consider it to be a Boolean, with value True:
     fIntValue = 1;
   } else {
