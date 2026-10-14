@@ -74,17 +74,14 @@ Boolean H263plusVideoRTPSource
     fNumSpecialHeaders = fSpecialHeaderBytesLength = 0;
   }
 
-  // Make a copy of the special header bytes, in case a reader
-  // can use them:
-  unsigned bytesAvailable
-    = SPECIAL_HEADER_BUFFER_SIZE - fSpecialHeaderBytesLength - 1;
-  if (expectedHeaderSize <= bytesAvailable) {
-    fSpecialHeaderBytes[fSpecialHeaderBytesLength++] = expectedHeaderSize;
-    for (unsigned i = 0; i < expectedHeaderSize; ++i) {
-      fSpecialHeaderBytes[fSpecialHeaderBytesLength++] = headerStart[i];
-    }
-    fPacketSizes[fNumSpecialHeaders++] = packetSize;
+  // Make a copy of the special header bytes, in case a reader can use them:
+  if (fSpecialHeaderBytesLength + (1+expectedHeaderSize) > SPECIAL_HEADER_BUFFER_SIZE
+      || fNumSpecialHeaders == 0xFF) return False; // no more space available for the copy
+  fSpecialHeaderBytes[fSpecialHeaderBytesLength++] = expectedHeaderSize;
+  for (unsigned i = 0; i < expectedHeaderSize; ++i) {
+    fSpecialHeaderBytes[fSpecialHeaderBytesLength++] = headerStart[i];
   }
+  fPacketSizes[fNumSpecialHeaders++] = packetSize;
 
   if (P) {
     // Prepend two zero bytes to the start of the payload proper.
