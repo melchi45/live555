@@ -614,8 +614,10 @@ RTPSink* MatroskaFile
     } else if (strcmp(track->mimeType, "audio/AAC") == 0) {
       // The Matroska file's 'Codec Private' data is assumed to be the AAC configuration
       // information.  Use this to generate a hexadecimal 'config' string for the new RTP sink:
+      if (track->codecPrivateSize > (UINT_MAX-1)/2) break;
       char* configStr = new char[2*track->codecPrivateSize + 1]; if (configStr == NULL) break;
           // 2 hex digits per byte, plus the trailing '\0'
+      configStr[0] = '\0';
       for (unsigned i = 0; i < track->codecPrivateSize; ++i) {
 	sprintf(&configStr[2*i], "%02X", track->codecPrivate[i]);
       }
