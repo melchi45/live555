@@ -145,6 +145,7 @@ private:
   char fCNAME[100]; // for RTCP
   RTCPAppHandlerFunc* fAppHandlerTask;
   void* fAppHandlerClientData;
+  Boolean fDoNotDisturb;
   friend class StreamState;
 };
 

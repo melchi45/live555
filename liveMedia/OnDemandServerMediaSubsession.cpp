@@ -31,7 +31,7 @@ OnDemandServerMediaSubsession
     fSDPLines(NULL), fMIKEYStateMessage(NULL), fMIKEYStateMessageSize(0),
     fReuseFirstSource(reuseFirstSource),
     fMultiplexRTCPWithRTP(multiplexRTCPWithRTP), fLastStreamToken(NULL),
-    fAppHandlerTask(NULL), fAppHandlerClientData(NULL) {
+    fAppHandlerTask(NULL), fAppHandlerClientData(NULL), fDoNotDisturb(False) {
   fDestinationsHashTable = HashTable::create(ONE_WORD_HASH_KEYS);
   if (fMultiplexRTCPWithRTP) {
     fInitialPortNum = initialPortNum;
@@ -125,6 +125,8 @@ void OnDemandServerMediaSubsession
 		      Port& serverRTPPort,
 		      Port& serverRTCPPort,
 		      void*& streamToken) {
+  fDoNotDisturb = True; // a hack to prevent a nested inner loop (if any) from deleting our state until we're done
+
   if (addressIsNull(destinationAddress)) {
     // normal case - use the client address as the destination address:
     destinationAddress = clientAddress;
@@ -234,6 +236,8 @@ void OnDemandServerMediaSubsession
     destinations = new Destinations(tcpSocketNum, rtpChannelId, rtcpChannelId, tlsState);
   }
   fDestinationsHashTable->Add((char const*)clientSessionId, destinations);
+
+  fDoNotDisturb = False;
 }
 
 void OnDemandServerMediaSubsession::startStream(unsigned clientSessionId,
@@ -366,6 +370,8 @@ void OnDemandServerMediaSubsession
 
 void OnDemandServerMediaSubsession::deleteStream(unsigned clientSessionId,
 						 void*& streamToken) {
+  if (fDoNotDisturb) return;
+  
   StreamState* streamState = (StreamState*)streamToken;
 
   // Look up (and remove) the destinations for this client session:
