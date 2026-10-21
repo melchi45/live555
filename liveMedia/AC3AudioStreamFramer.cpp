@@ -323,8 +323,7 @@ void AC3AudioStreamParser
   parser->afterGettingSavedFrame1(frameSize);
 }
 
-void AC3AudioStreamParser
-::afterGettingSavedFrame1(unsigned frameSize) {
+void AC3AudioStreamParser::afterGettingSavedFrame1(unsigned frameSize) {
   fSavedFrameSize = frameSize;
   fSavedFrameFlag = ~0;
 }
