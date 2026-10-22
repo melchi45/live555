@@ -62,9 +62,8 @@ private: // redefined virtual functions
   // more than just the input source, we reimplement some functions that are
   // already implemented in "OnDemandServerMediaSubsession", rather than
   // reimplementing "seekStreamSource()" and "setStreamSourceScale()":
-  virtual void startStream(unsigned clientSessionId, void* streamToken,
-                           TaskFunc* rtcpRRHandler,
-                           void* rtcpRRHandlerClientData,
+  virtual void startStream(unsigned clientSessionId, void* streamToken, int tcpSocketNum,
+                           TaskFunc* rtcpRRHandler, void* rtcpRRHandlerClientData,
                            unsigned short& rtpSeqNum,
                            unsigned& rtpTimestamp,
 			   ServerRequestAlternativeByteHandler* serverRequestAlternativeByteHandler,

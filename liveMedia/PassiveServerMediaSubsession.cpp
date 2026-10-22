@@ -149,7 +149,7 @@ void PassiveServerMediaSubsession
 		      struct sockaddr_storage const& clientAddress,
 		      Port const& /*clientRTPPort*/,
 		      Port const& clientRTCPPort,
-		      int /*tcpSocketNum*/,
+		      Boolean /*streamUsingTCP*/,
 		      unsigned char /*rtpChannelId*/,
 		      unsigned char /*rtcpChannelId*/,
 		      TLSState* /*tlsState*/,
@@ -185,14 +185,13 @@ void PassiveServerMediaSubsession
   fClientRTCPSourceRecords->Add((char const*)clientSessionId, source);
 }
 
-void PassiveServerMediaSubsession::startStream(unsigned clientSessionId,
-					       void* /*streamToken*/,
-					       TaskFunc* rtcpRRHandler,
-					       void* rtcpRRHandlerClientData,
-					       unsigned short& rtpSeqNum,
-					       unsigned& rtpTimestamp,
-					       ServerRequestAlternativeByteHandler* /*serverRequestAlternativeByteHandler*/,
-					       void* /*serverRequestAlternativeByteHandlerClientData*/) {
+void PassiveServerMediaSubsession
+::startStream(unsigned clientSessionId, void* /*streamToken*/, int /*tcpSocketNum*/,
+	      TaskFunc* rtcpRRHandler, void* rtcpRRHandlerClientData,
+	      unsigned short& rtpSeqNum,
+	      unsigned& rtpTimestamp,
+	      ServerRequestAlternativeByteHandler* /*serverRequestAlternativeByteHandler*/,
+	      void* /*serverRequestAlternativeByteHandlerClientData*/) {
   rtpSeqNum = fRTPSink.currentSeqNo();
   rtpTimestamp = fRTPSink.presetNextTimestamp();
 

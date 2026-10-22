@@ -129,7 +129,7 @@ public:
 				   struct sockaddr_storage const& clientAddress, // in
 				   Port const& clientRTPPort, // in
 				   Port const& clientRTCPPort, // in
-				   int tcpSocketNum, // in (-1 means use UDP, not TCP)
+				   Boolean streamUsingTCP, // in
 				   unsigned char rtpChannelId, // in (used if TCP)
 				   unsigned char rtcpChannelId, // in (used if TCP)
 				   TLSState* tlsState, // in (used if TCP)
@@ -140,9 +140,8 @@ public:
 				   Port& serverRTCPPort, // out
 				   void*& streamToken // out
 				   ) = 0;
-  virtual void startStream(unsigned clientSessionId, void* streamToken,
-			   TaskFunc* rtcpRRHandler,
-			   void* rtcpRRHandlerClientData,
+  virtual void startStream(unsigned clientSessionId, void* streamToken, int tcpSocketNum,
+			   TaskFunc* rtcpRRHandler, void* rtcpRRHandlerClientData,
 			   unsigned short& rtpSeqNum,
 			   unsigned& rtpTimestamp,
 			   ServerRequestAlternativeByteHandler* serverRequestAlternativeByteHandler,

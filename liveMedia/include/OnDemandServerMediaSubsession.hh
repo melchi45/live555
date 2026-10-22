@@ -48,7 +48,7 @@ protected: // redefined virtual functions
 				   struct sockaddr_storage const& clientAddress,
                                    Port const& clientRTPPort,
                                    Port const& clientRTCPPort,
-				   int tcpSocketNum,
+				   Boolean streamUsingTCP,
                                    unsigned char rtpChannelId,
                                    unsigned char rtcpChannelId,
 				   TLSState* tlsState,
@@ -58,9 +58,8 @@ protected: // redefined virtual functions
                                    Port& serverRTPPort,
                                    Port& serverRTCPPort,
                                    void*& streamToken);
-  virtual void startStream(unsigned clientSessionId, void* streamToken,
-			   TaskFunc* rtcpRRHandler,
-			   void* rtcpRRHandlerClientData,
+  virtual void startStream(unsigned clientSessionId, void* streamToken, int tcpSocketNum,
+			   TaskFunc* rtcpRRHandler, void* rtcpRRHandlerClientData,
 			   unsigned short& rtpSeqNum,
                            unsigned& rtpTimestamp,
 			   ServerRequestAlternativeByteHandler* serverRequestAlternativeByteHandler,
@@ -159,12 +158,13 @@ public:
   Destinations(struct sockaddr_storage const& destAddr,
                Port const& rtpDestPort,
                Port const& rtcpDestPort)
-    : isTCP(False), addr(destAddr), rtpPort(rtpDestPort), rtcpPort(rtcpDestPort) {
+    : isTCP(False), addr(destAddr), rtpPort(rtpDestPort), rtcpPort(rtcpDestPort),
+      tcpSocketNum(-1), rtpChannelId(0 /*dummy*/), rtcpChannelId(1 /*dummy*/),
+      tlsState(NULL) {
   }
-  Destinations(int tcpSockNum, unsigned char rtpChanId, unsigned char rtcpChanId,
-	       TLSState* tlsSt)
+  Destinations(unsigned char rtpChanId, unsigned char rtcpChanId, TLSState* tlsSt)
     : isTCP(True), rtpPort(0) /*dummy*/, rtcpPort(0) /*dummy*/,
-      tcpSocketNum(tcpSockNum), rtpChannelId(rtpChanId), rtcpChannelId(rtcpChanId),
+      tcpSocketNum(-1/*set later*/), rtpChannelId(rtpChanId), rtcpChannelId(rtcpChanId),
       tlsState(tlsSt) {
   }
 
