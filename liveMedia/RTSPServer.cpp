@@ -1356,11 +1356,11 @@ static Boolean parseTransportHeader(char const* buf,
   char* field = strDupSize(fields);
   while (sscanf(fields, "%[^;\r\n]", field) == 1) {
     badFieldSeen = True; // until we learn otherwise
-    if (strcmp(field, "RTP/AVP/TCP") == 0) {
+    if (strcmp(field, "RTP/AVP/TCP") == 0 || strcmp(field, "RTP/SAVP/TCP") == 0) {
       if (streamingMode != UNKNOWN) break; // more than one 'streaming mode' is not allowed
 
       streamingMode = RTP_TCP;
-    } else if (strcmp(field, "RTP/AVP") == 0 || strcmp(field, "RTP/AVP/SAVP") == 0) {
+    } else if (strcmp(field, "RTP/AVP") == 0 || strcmp(field, "RTP/SAVP") == 0) {
       if (streamingMode != UNKNOWN) break; // more than one 'streaming mode' is not allowed
 
       streamingMode = RTP_UDP;
@@ -1572,6 +1572,7 @@ void RTSPServer::RTSPClientSession
       for (unsigned i = 0; i < fNumStreamStates; ++i) {
 	subsession = iter.next();
 	fStreamStates[i].subsession = subsession;
+	fStreamStates[i].streamUsingTCP = False; // for now
 	fStreamStates[i].tcpSocketNum = -1; // for now; may get set for RTP-over-TCP streaming
 	fStreamStates[i].streamToken = NULL; // for now; it may be changed by the "getStreamParameters()" call that comes later
       }
@@ -1658,14 +1659,13 @@ void RTSPServer::RTSPClientSession
       // so stop any existing streaming of it, before we set it up again:
       subsession->pauseStream(fOurSessionId, token);
       fOurRTSPServer.unnoteTCPStreamingOnSocket(fStreamStates[trackNum].tcpSocketNum, this, trackNum);
+      fStreamStates[trackNum].streamUsingTCP = False; fStreamStates[trackNum].tcpSocketNum = -1;
       subsession->deleteStream(fOurSessionId, token);
     }
 
     // Then, get server parameters from the 'subsession':
     if (streamingMode == RTP_TCP) {
-      // Note that we'll be streaming over the RTSP TCP connection:
-      fStreamStates[trackNum].tcpSocketNum = ourClientConnection->fClientOutputSocket;
-      fOurRTSPServer.noteTCPStreamingOnSocket(fStreamStates[trackNum].tcpSocketNum, this, trackNum);
+      fStreamStates[trackNum].streamUsingTCP = True;
     }
     struct sockaddr_storage destinationAddress = nullAddress();
         // used to indicate that the address is 'unassigned'
@@ -1698,8 +1698,7 @@ void RTSPServer::RTSPClientSession
     
     subsession->getStreamParameters(fOurSessionId, ourClientConnection->fClientAddr,
 				    clientRTPPort, clientRTCPPort,
-				    streamingMode == RTP_TCP
-				    ? fStreamStates[trackNum].tcpSocketNum : -1,
+				    streamingMode == RTP_TCP,
 				    rtpChannelId, rtcpChannelId,
                                     &ourClientConnection->fTLS,
 				    destinationAddress, destinationTTL, fIsMulticast,
@@ -2070,8 +2069,15 @@ void RTSPServer::RTSPClientSession
       unsigned short rtpSeqNum = 0;
       unsigned rtpTimestamp = 0;
       if (fStreamStates[i].subsession == NULL) continue;
+
+      if (fStreamStates[i].streamUsingTCP) {
+	// Note that we'll be streaming over the RTSP TCP connection:
+	fStreamStates[i].tcpSocketNum = ourClientConnection->fClientOutputSocket;
+	fOurRTSPServer.noteTCPStreamingOnSocket(fStreamStates[i].tcpSocketNum, this, i);
+      }
       fStreamStates[i].subsession->startStream(fOurSessionId,
 					       fStreamStates[i].streamToken,
+					       fStreamStates[i].tcpSocketNum,
 					       (TaskFunc*)noteClientLiveness, this,
 					       rtpSeqNum, rtpTimestamp,
 					       RTSPServer::RTSPClientConnection::handleAlternativeRequestByte, ourClientConnection);

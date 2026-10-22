@@ -73,8 +73,9 @@ MPEG2TransportFileServerMediaSubsession
 // The product of these two numbers must be enough to fit within a network packet
 
 void MPEG2TransportFileServerMediaSubsession
-::startStream(unsigned clientSessionId, void* streamToken, TaskFunc* rtcpRRHandler,
-	      void* rtcpRRHandlerClientData, unsigned short& rtpSeqNum,
+::startStream(unsigned clientSessionId, void* streamToken, int tcpSocketNum,
+	      TaskFunc* rtcpRRHandler, void* rtcpRRHandlerClientData,
+	      unsigned short& rtpSeqNum,
 	      unsigned& rtpTimestamp,
 	      ServerRequestAlternativeByteHandler* serverRequestAlternativeByteHandler,
 	      void* serverRequestAlternativeByteHandlerClientData) {
@@ -91,7 +92,7 @@ void MPEG2TransportFileServerMediaSubsession
   }
 
   // Call the original, default version of this routine:
-  OnDemandServerMediaSubsession::startStream(clientSessionId, streamToken,
+  OnDemandServerMediaSubsession::startStream(clientSessionId, streamToken, tcpSocketNum,
 					     rtcpRRHandler, rtcpRRHandlerClientData,
 					     rtpSeqNum, rtpTimestamp,
 					     serverRequestAlternativeByteHandler, serverRequestAlternativeByteHandlerClientData);

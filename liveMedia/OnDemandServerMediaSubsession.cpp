@@ -115,7 +115,7 @@ void OnDemandServerMediaSubsession
 		      struct sockaddr_storage const& clientAddress,
 		      Port const& clientRTPPort,
 		      Port const& clientRTCPPort,
-		      int tcpSocketNum,
+		      Boolean streamUsingTCP,
 		      unsigned char rtpChannelId,
 		      unsigned char rtcpChannelId,
 		      TLSState* tlsState,
@@ -153,7 +153,7 @@ void OnDemandServerMediaSubsession
     Groupsock* rtpGroupsock = NULL;
     Groupsock* rtcpGroupsock = NULL;
 
-    if (clientRTPPort.num() != 0 || tcpSocketNum >= 0) { // Normal case: Create destinations
+    if (clientRTPPort.num() != 0 || streamUsingTCP) { // Normal case: Create destinations
       portNumBits serverPortNum;
       if (clientRTCPPort.num() == 0) {
 	// We're streaming raw UDP (not RTP). Create a single groupsock:
@@ -230,35 +230,37 @@ void OnDemandServerMediaSubsession
 
   // Record these destinations as being for this client session id:
   Destinations* destinations;
-  if (tcpSocketNum < 0) { // UDP
+  if (streamUsingTCP) {
+    destinations = new Destinations(rtpChannelId, rtcpChannelId, tlsState);
+  } else { // UDP
     destinations = new Destinations(destinationAddress, clientRTPPort, clientRTCPPort);
-  } else { // TCP
-    destinations = new Destinations(tcpSocketNum, rtpChannelId, rtcpChannelId, tlsState);
   }
   fDestinationsHashTable->Add((char const*)clientSessionId, destinations);
 
   fDoNotDisturb = False;
 }
 
-void OnDemandServerMediaSubsession::startStream(unsigned clientSessionId,
-						void* streamToken,
-						TaskFunc* rtcpRRHandler,
-						void* rtcpRRHandlerClientData,
-						unsigned short& rtpSeqNum,
-						unsigned& rtpTimestamp,
-						ServerRequestAlternativeByteHandler* serverRequestAlternativeByteHandler,
-						void* serverRequestAlternativeByteHandlerClientData) {
+void OnDemandServerMediaSubsession
+::startStream(unsigned clientSessionId, void* streamToken, int tcpSocketNum,
+	      TaskFunc* rtcpRRHandler, void* rtcpRRHandlerClientData,
+	      unsigned short& rtpSeqNum,
+	      unsigned& rtpTimestamp,
+	      ServerRequestAlternativeByteHandler* serverRequestAlternativeByteHandler,
+	      void* serverRequestAlternativeByteHandlerClientData) {
   StreamState* streamState = (StreamState*)streamToken;
-  Destinations* destinations
-    = (Destinations*)(fDestinationsHashTable->Lookup((char const*)clientSessionId));
   if (streamState != NULL) {
-    streamState->startPlaying(destinations, clientSessionId,
-			      rtcpRRHandler, rtcpRRHandlerClientData,
-			      serverRequestAlternativeByteHandler, serverRequestAlternativeByteHandlerClientData);
-    RTPSink* rtpSink = streamState->rtpSink(); // alias
-    if (rtpSink != NULL) {
-      rtpSeqNum = rtpSink->currentSeqNo();
-      rtpTimestamp = rtpSink->presetNextTimestamp();
+    Destinations* destinations
+      = (Destinations*)(fDestinationsHashTable->Lookup((char const*)clientSessionId));
+    if (destinations != NULL) {
+      destinations->tcpSocketNum = tcpSocketNum;
+      streamState->startPlaying(destinations, clientSessionId,
+				rtcpRRHandler, rtcpRRHandlerClientData,
+				serverRequestAlternativeByteHandler, serverRequestAlternativeByteHandlerClientData);
+      RTPSink* rtpSink = streamState->rtpSink(); // alias
+      if (rtpSink != NULL) {
+	rtpSeqNum = rtpSink->currentSeqNo();
+	rtpTimestamp = rtpSink->presetNextTimestamp();
+      }
     }
   }
 }
@@ -552,8 +554,6 @@ void StreamState
 	       TaskFunc* rtcpRRHandler, void* rtcpRRHandlerClientData,
 	       ServerRequestAlternativeByteHandler* serverRequestAlternativeByteHandler,
 	       void* serverRequestAlternativeByteHandlerClientData) {
-  if (dests == NULL) return;
-
   if (fRTCPInstance == NULL && fRTPSink != NULL) {
     // Create (and start) a 'RTCP instance' for this RTP sink:
     fRTCPInstance = fMaster.createRTCP(fRTCPgs, fTotalBW, (unsigned char*)fMaster.fCNAME, fRTPSink);

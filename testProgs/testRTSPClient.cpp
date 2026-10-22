@@ -170,7 +170,7 @@ static unsigned rtspClientCount = 0; // Counts how many streams (i.e., "RTSPClie
 
 void openURL(UsageEnvironment& env, char const* progName, char const* rtspURL) {
   // Begin by creating a "RTSPClient" object.  Note that there is a separate "RTSPClient" object for each stream that we wish
-  // to receive (even if more than stream uses the same "rtsp://" URL).
+  // to receive (even if more than one stream uses the same "rtsp://" URL).
   RTSPClient* rtspClient = ourRTSPClient::createNew(env, rtspURL, RTSP_CLIENT_VERBOSITY_LEVEL, progName);
   if (rtspClient == NULL) {
     env << "Failed to create a RTSP client for URL \"" << rtspURL << "\": " << env.getResultMsg() << "\n";

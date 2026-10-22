@@ -292,6 +292,7 @@ public: // should be protected, but some old compilers complain otherwise
     unsigned fNumStreamStates;
     struct streamState {
       ServerMediaSubsession* subsession;
+      Boolean streamUsingTCP;
       int tcpSocketNum;
       void* streamToken;
     } * fStreamStates;
