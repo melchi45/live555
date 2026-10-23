@@ -169,7 +169,7 @@ public:
      // (This can be useful if you want to get the associated 'Groupsock' objects, for example.)
      // You must not delete these objects, or start/stop playing them; instead, that is done
      // using the "startStream()" and "deleteStream()" functions.
-  virtual void deleteStream(unsigned clientSessionId, void*& streamToken);
+  virtual Boolean deleteStream(unsigned clientSessionId, void*& streamToken);
 
   virtual void testScaleFactor(float& scale); // sets "scale" to the actual supported scale
   virtual float duration() const;

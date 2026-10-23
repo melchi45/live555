@@ -70,7 +70,7 @@ protected: // redefined virtual functions
   virtual float getCurrentNPT(void* streamToken);
   virtual void getRTPSinkandRTCP(void* streamToken,
 				 RTPSink*& rtpSink, RTCPInstance*& rtcp);
-  virtual void deleteStream(unsigned clientSessionId, void*& streamToken);
+  virtual Boolean deleteStream(unsigned clientSessionId, void*& streamToken);
 
 protected:
   char* fSDPLines;

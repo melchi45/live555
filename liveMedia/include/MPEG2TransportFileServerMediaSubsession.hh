@@ -71,7 +71,7 @@ private: // redefined virtual functions
   virtual void pauseStream(unsigned clientSessionId, void* streamToken);
   virtual void seekStream(unsigned clientSessionId, void* streamToken, double& seekNPT, double streamDuration, u_int64_t& numBytes);
   virtual void setStreamScale(unsigned clientSessionId, void* streamToken, float scale);
-  virtual void deleteStream(unsigned clientSessionId, void*& streamToken);
+  virtual Boolean deleteStream(unsigned clientSessionId, void*& streamToken);
 
   // The virtual functions that are usually implemented by "ServerMediaSubsession"s:
   virtual FramedSource* createNewStreamSource(unsigned clientSessionId,

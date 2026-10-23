@@ -1284,9 +1284,12 @@ RTSPServer::RTSPClientSession::~RTSPClientSession() {
 
 void RTSPServer::RTSPClientSession::deleteStreamByTrack(unsigned trackNum) {
   if (trackNum >= fNumStreamStates) return; // sanity check; shouldn't happen
-  if (fStreamStates[trackNum].subsession != NULL) {
-    fStreamStates[trackNum].subsession->deleteStream(fOurSessionId, fStreamStates[trackNum].streamToken);
-    fStreamStates[trackNum].subsession = NULL;
+  ServerMediaSubsession*& subsession = fStreamStates[trackNum].subsession; // alias
+  
+  if (subsession != NULL) {
+    if (subsession->deleteStream(fOurSessionId, fStreamStates[trackNum].streamToken)) {
+      subsession = NULL;
+    }
   }
   
   // Optimization: If all subsessions have now been deleted, then we can delete ourself now:
@@ -1304,7 +1307,7 @@ void RTSPServer::RTSPClientSession::reclaimStreamStates() {
   for (unsigned i = 0; i < fNumStreamStates; ++i) {
     if (fStreamStates[i].subsession != NULL) {
       fOurRTSPServer.unnoteTCPStreamingOnSocket(fStreamStates[i].tcpSocketNum, this, i);
-      fStreamStates[i].subsession->deleteStream(fOurSessionId, fStreamStates[i].streamToken);
+      (void)fStreamStates[i].subsession->deleteStream(fOurSessionId, fStreamStates[i].streamToken);
     }
   }
   delete[] fStreamStates; fStreamStates = NULL;
@@ -1660,7 +1663,7 @@ void RTSPServer::RTSPClientSession
       subsession->pauseStream(fOurSessionId, token);
       fOurRTSPServer.unnoteTCPStreamingOnSocket(fStreamStates[trackNum].tcpSocketNum, this, trackNum);
       fStreamStates[trackNum].streamUsingTCP = False; fStreamStates[trackNum].tcpSocketNum = -1;
-      subsession->deleteStream(fOurSessionId, token);
+      (void)subsession->deleteStream(fOurSessionId, token);
     }
 
     // Then, get server parameters from the 'subsession':
@@ -1877,12 +1880,13 @@ void RTSPServer::RTSPClientSession
 
   unsigned i;
   for (i = 0; i < fNumStreamStates; ++i) {
-    if (subsession == NULL /* means: aggregated operation */
-	|| subsession == fStreamStates[i].subsession) {
-      if (fStreamStates[i].subsession != NULL) {
+    ServerMediaSubsession*& ssss = fStreamStates[i].subsession; // alias
+    if (subsession == NULL /* means: aggregated operation */ || subsession == ssss) {
+      if (ssss != NULL) {
 	fOurRTSPServer.unnoteTCPStreamingOnSocket(fStreamStates[i].tcpSocketNum, this, i);
-	fStreamStates[i].subsession->deleteStream(fOurSessionId, fStreamStates[i].streamToken);
-	fStreamStates[i].subsession = NULL;
+	if (ssss->deleteStream(fOurSessionId, fStreamStates[i].streamToken)) {
+	  ssss = NULL;
+	}
       }
     }
   }
