@@ -139,7 +139,7 @@ void MPEG2TransportFileServerMediaSubsession
   OnDemandServerMediaSubsession::setStreamScale(clientSessionId, streamToken, scale);
 }
 
-void MPEG2TransportFileServerMediaSubsession
+Boolean MPEG2TransportFileServerMediaSubsession
 ::deleteStream(unsigned clientSessionId, void*& streamToken) {
   if (fIndexFile != NULL) { // we support 'trick play'
     ClientTrickPlayState* client = lookupClient(clientSessionId);
@@ -149,7 +149,7 @@ void MPEG2TransportFileServerMediaSubsession
   }
 
   // Call the original, default version of this routine:
-  OnDemandServerMediaSubsession::deleteStream(clientSessionId, streamToken);
+  return OnDemandServerMediaSubsession::deleteStream(clientSessionId, streamToken);
 }
 
 ClientTrickPlayState* MPEG2TransportFileServerMediaSubsession::newClientTrickPlayState() {

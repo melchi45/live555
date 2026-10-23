@@ -370,9 +370,8 @@ void OnDemandServerMediaSubsession
   rtcp = streamState->rtcpInstance();
 }
 
-void OnDemandServerMediaSubsession::deleteStream(unsigned clientSessionId,
-						 void*& streamToken) {
-  if (fDoNotDisturb) return;
+Boolean OnDemandServerMediaSubsession::deleteStream(unsigned clientSessionId, void*& streamToken) {
+  if (fDoNotDisturb) return False;
   
   StreamState* streamState = (StreamState*)streamToken;
 
@@ -397,6 +396,8 @@ void OnDemandServerMediaSubsession::deleteStream(unsigned clientSessionId,
 
   // Finally, delete the destinations themselves:
   delete destinations;
+
+  return True;
 }
 
 char const* OnDemandServerMediaSubsession

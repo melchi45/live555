@@ -233,7 +233,7 @@ void PassiveServerMediaSubsession
   rtcp = fRTCPInstance;
 }
 
-void PassiveServerMediaSubsession::deleteStream(unsigned clientSessionId, void*& /*streamToken*/) {
+Boolean PassiveServerMediaSubsession::deleteStream(unsigned clientSessionId, void*& /*streamToken*/) {
   // Lookup and remove the 'RTCPSourceRecord' for this client.  Also turn off RTCP "RR" handling:
   RTCPSourceRecord* source = (RTCPSourceRecord*)(fClientRTCPSourceRecords->Lookup((char const*)clientSessionId));
   if (source != NULL) {
@@ -244,4 +244,6 @@ void PassiveServerMediaSubsession::deleteStream(unsigned clientSessionId, void*&
     fClientRTCPSourceRecords->Remove((char const*)clientSessionId);
     delete source;
   }
+
+  return True;
 }
