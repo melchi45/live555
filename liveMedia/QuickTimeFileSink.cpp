@@ -1902,7 +1902,7 @@ addAtom(avcC);
   if (psets == NULL) return 0;
 
   char const* spsBase64 = psets;
-  size_t comma_pos = strcspn(psets, ",");
+  size_t const comma_pos = strcspn(psets, ",");
   psets[comma_pos] = '\0';
 
   char const* ppsBase64 = &psets[comma_pos+1];

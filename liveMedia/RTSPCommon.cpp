@@ -258,7 +258,7 @@ Boolean parseRangeParam(char const* paramStr,
     rangeStart = rangeEnd = 0.0;
 
     char const* utcTimes = &paramStr[numCharsMatched3];
-    size_t len = strlen(utcTimes) + 1;
+    size_t const len = strlen(utcTimes) + 1;
     char* as = new char[len];
     char* ae = new char[len];
     int sscanfResult = sscanf(utcTimes, "%[^-]-%[^\r\n]", as, ae);

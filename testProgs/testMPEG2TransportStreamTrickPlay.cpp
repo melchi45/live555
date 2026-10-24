@@ -73,14 +73,17 @@ int main(int argc, char const** argv) {
 
   // Check whether the corresponding index file exists.
   // The index file name is the same as the input file name, except with suffix ".tsx":
-  char* indexFileName = new char[len+2]; // allow for trailing x\0
-  sprintf(indexFileName, "%sx", inputFileName);
+  size_t const indexFileNameLen = len+2; // allow for trailing x\0
+  char* indexFileName = new char[indexFileNameLen]; // allow for trailing x\0
+  snprintf(indexFileName, indexFileNameLen, "%sx", inputFileName);
   MPEG2TransportStreamIndexFile* indexFile
     = MPEG2TransportStreamIndexFile::createNew(*env, indexFileName);
   if (indexFile == NULL) {
     *env << "Failed to open index file \"" << indexFileName << "\" (does it exist?)\n";
+    delete[] indexFileName;
     exit(1);
   }
+  delete[] indexFileName;
 
   // Create a filter that generates trick mode data from the input and index files:
   MPEG2TransportStreamTrickModeFilter* trickModeFilter

@@ -462,9 +462,10 @@ void segmentationCallback(void* /*clientData*/,
 
   // Then, rewrite our ".m3u8" file with the new list of segments:
   if (ourM3U8FileName == NULL) {
-    ourM3U8FileName = new char[strlen(hlsPrefix) + 5/*strlen(".m3u8")*/ + 1];
+    size_t fileNameSize = strlen(hlsPrefix) + 5/*strlen(".m3u8")*/ + 1;
+    ourM3U8FileName = new char[fileNameSize];
     if (ourM3U8FileName == NULL) exit(1);
-    sprintf(ourM3U8FileName, "%s.m3u8", hlsPrefix);
+    snprintf(ourM3U8FileName, fileNameSize, "%s.m3u8", hlsPrefix);
   }
 
   // Open our ".m3u8" file for output, and write the prefix:

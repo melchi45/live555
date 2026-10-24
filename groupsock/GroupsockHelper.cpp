@@ -180,7 +180,7 @@ int setupDatagramSocket(UsageEnvironment& env, Port port, int domain) {
       MAKE_SOCKADDR_IN(name, addr, port.num());
       if (bind(newSocket, (struct sockaddr*)&name, sizeof name) != 0) {
 	char tmpBuffer[100];
-	sprintf(tmpBuffer, "IPv4 bind() error (port number: %d): ", ntohs(port.num()));
+	snprintf(tmpBuffer, sizeof tmpBuffer, "IPv4 bind() error (port number: %d): ", ntohs(port.num()));
 	socketErr(env, tmpBuffer);
 	closeSocket(newSocket);
 	return -1;
@@ -200,7 +200,7 @@ int setupDatagramSocket(UsageEnvironment& env, Port port, int domain) {
       MAKE_SOCKADDR_IN6(name, addr, port.num());
       if (bind(newSocket, (struct sockaddr*)&name, sizeof name) != 0) {
 	char tmpBuffer[100];
-	sprintf(tmpBuffer, "IPv6 bind() error (port number: %d): ", ntohs(port.num()));
+	snprintf(tmpBuffer, sizeof tmpBuffer, "IPv6 bind() error (port number: %d): ", ntohs(port.num()));
 	socketErr(env, tmpBuffer);
 	closeSocket(newSocket);
 	return -1;
@@ -362,7 +362,7 @@ int setupStreamSocket(UsageEnvironment& env, Port port, int domain,
       MAKE_SOCKADDR_IN(name, ReceivingInterfaceAddr, port.num());
       if (bind(newSocket, (struct sockaddr*)&name, sizeof name) != 0) {
 	char tmpBuffer[100];
-	sprintf(tmpBuffer, "IPv4 bind() error (port number: %d): ", ntohs(port.num()));
+	snprintf(tmpBuffer, sizeof tmpBuffer, "IPv4 bind() error (port number: %d): ", ntohs(port.num()));
 	socketErr(env, tmpBuffer);
 	closeSocket(newSocket);
 	return -1;
@@ -381,7 +381,7 @@ int setupStreamSocket(UsageEnvironment& env, Port port, int domain,
       MAKE_SOCKADDR_IN6(name, ReceivingInterfaceAddr6, port.num());
       if (bind(newSocket, (struct sockaddr*)&name, sizeof name) != 0) {
 	char tmpBuffer[100];
-	sprintf(tmpBuffer, "IPv6 bind() error (port number: %d): ", ntohs(port.num()));
+	snprintf(tmpBuffer, sizeof tmpBuffer, "IPv6 bind() error (port number: %d): ", ntohs(port.num()));
 	socketErr(env, tmpBuffer);
 	closeSocket(newSocket);
 	return -1;
@@ -475,9 +475,9 @@ Boolean writeSocket(UsageEnvironment& env,
     int bytesSent = sendto(socket, (char*)buffer, bufferSize, MSG_NOSIGNAL,
 			   (struct sockaddr const*)&addressAndPort, dest_len);
     if (bytesSent != (int)bufferSize) {
-      char tmpBuf[100];
-      sprintf(tmpBuf, "writeSocket(%d), sendTo() error: wrote %d bytes instead of %u: ", socket, bytesSent, bufferSize);
-      socketErr(env, tmpBuf);
+      char tmpBuffer[100];
+      snprintf(tmpBuffer, sizeof tmpBuffer, "writeSocket(%d), sendTo() error: wrote %d bytes instead of %u: ", socket, bytesSent, bufferSize);
+      socketErr(env, tmpBuffer);
       break;
     }
     
@@ -1013,7 +1013,7 @@ char const* timestampString() {
   time_t tvNow_t = tvNow.tv_sec;
   char const* ctimeResult = ctime(&tvNow_t);
   if (ctimeResult == NULL) {
-    sprintf(timeString, "??:??:??");
+    snprintf(timeString, sizeof timeString, "??:??:??");
   } else {
     char const* from = &ctimeResult[11];
     int i;
@@ -1027,7 +1027,7 @@ char const* timestampString() {
   // a timestamp string just using the integer and fractional parts
   // of "tvNow":
   static char timeString[50];
-  sprintf(timeString, "%lu.%06ld", tvNow.tv_sec, tvNow.tv_usec);
+  snprintf(timeString, sizeof timeString, "%lu.%06ld", tvNow.tv_sec, tvNow.tv_usec);
 #endif
 
   return (char const*)&timeString;
