@@ -838,7 +838,7 @@ void createOutputFiles(char const* periodicFilenameSuffix) {
   if (outputQuickTimeFile || outputAVIFile) {
     if (periodicFilenameSuffix[0] == '\0') {
       // Normally (unless the '-P <interval-in-seconds>' option was given) we output to 'stdout':
-      sprintf(outFileName, "stdout");
+      snprintf(outFileName, sizeof outFileName, "stdout");
     } else {
       // Otherwise output to a type-specific file name, containing "periodicFilenameSuffix":
       char const* prefix = fileNamePrefix[0] == '\0' ? "output" : fileNamePrefix;
@@ -898,7 +898,7 @@ void createOutputFiles(char const* periodicFilenameSuffix) {
       } else {
 	// When outputting a single medium only, we output to 'stdout
 	// (unless the '-P <interval-in-seconds>' option was given):
-	sprintf(outFileName, "stdout");
+	snprintf(outFileName, sizeof outFileName, "stdout");
       }
 
       FileSink* fileSink = NULL;
@@ -1513,7 +1513,8 @@ void checkForPacketArrival(void* /*clientData*/) {
     struct timeval timeNow;
     gettimeofday(&timeNow, NULL);
 	char timestampStr[100];
-	sprintf(timestampStr, "%ld%03ld", timeNow.tv_sec, (long)(timeNow.tv_usec/1000));
+	snprintf(timestampStr, sizeof timestampStr,
+		 "%ld%03ld", timeNow.tv_sec, (long)(timeNow.tv_usec/1000));
     *env << (syncStreams ? "Synchronized d" : "D")
 		<< "ata packets have begun arriving [" << timestampStr << "]\007\n";
     return;

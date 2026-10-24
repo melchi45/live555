@@ -303,7 +303,7 @@ static Boolean parseStringValue(char const* sdpLine, char const* searchFormat, c
 static Boolean parseTwoStringValues(char const* sdpLine, char const* searchFormat,
 				    char*& result1, char*& result2) {
   Boolean parseSuccess = False;
-  size_t sdpLineSize = strlen(sdpLine) + 1;
+  size_t const sdpLineSize = strlen(sdpLine) + 1;
   char* buffer1 = new char[sdpLineSize];
   char* buffer2 = new char[sdpLineSize];
 
@@ -385,7 +385,7 @@ static Boolean parseRangeAttribute(char const* sdpLine, double& startTime, doubl
 }
 
 static Boolean parseRangeAttribute(char const* sdpLine, char*& absStartTime, char*& absEndTime) {
-  size_t len = strlen(sdpLine) + 1;
+  size_t const len = strlen(sdpLine) + 1;
   char* as = new char[len];
   char* ae = new char[len];
   int sscanfResult = sscanf(sdpLine, "a=range: clock = %[^-\r\n]-%[^\r\n]", as, ae);

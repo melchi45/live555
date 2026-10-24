@@ -214,9 +214,9 @@ int main(int argc, char** argv) {
     char const* proxiedStreamURL = argv[i];
     char streamName[30];
     if (argc == 2) {
-      sprintf(streamName, "%s", "proxyStream"); // there's just one stream; give it this name
+      snprintf(streamName, sizeof streamName, "%s", "proxyStream"); // there's just one stream; give it this name
     } else {
-      sprintf(streamName, "proxyStream-%d", i); // there's more than one stream; distinguish them by name
+      snprintf(streamName, sizeof streamName, "proxyStream-%d", i); // there's more than one stream; distinguish them by name
     }
     ServerMediaSession* sms
       = ProxyServerMediaSession::createNew(*env, rtspServer,

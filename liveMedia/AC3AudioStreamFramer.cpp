@@ -227,8 +227,7 @@ AC3AudioStreamParser::~AC3AudioStreamParser() {
   delete[] fSavedFrame;
 }
 
-void AC3AudioStreamParser::registerReadInterest(unsigned char* to,
-						 unsigned maxSize) {
+void AC3AudioStreamParser::registerReadInterest(unsigned char* to, unsigned maxSize) {
   fTo = to;
   fMaxSize = maxSize;
 }
@@ -254,6 +253,13 @@ void AC3AudioStreamParser
 unsigned AC3AudioStreamParser::parseFrame(unsigned& numTruncatedBytes) {
   if (fSavedFrameSize > 0) {
     // We've already read and parsed a frame.  Use it instead:
+    if (fSavedFrameSize > fMaxSize) {
+      numTruncatedBytes = fSavedFrameSize - fMaxSize;
+      fSavedFrameSize = fMaxSize;
+    } else {
+      numTruncatedBytes = 0;
+    }
+
     memmove(fTo, fSavedFrame, fSavedFrameSize);
     delete[] fSavedFrame; fSavedFrame = NULL;
     unsigned frameSize = fSavedFrameSize;

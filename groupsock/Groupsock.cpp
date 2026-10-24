@@ -425,7 +425,7 @@ static Boolean setGroupsockBySocket(UsageEnvironment& env, int sock,
     // Make sure the "sock" parameter is in bounds:
     if (sock < 0) {
       char buf[100];
-      sprintf(buf, "trying to use bad socket (%d)", sock);
+      snprintf(buf, sizeof buf, "trying to use bad socket (%d)", sock);
       env.setResultMsg(buf);
       break;
     }
@@ -437,7 +437,7 @@ static Boolean setGroupsockBySocket(UsageEnvironment& env, int sock,
       = (sockets->Lookup((char*)(long)sock) != 0);
     if (alreadyExists) {
       char buf[100];
-      sprintf(buf, "Attempting to replace an existing socket (%d)", sock);
+      snprintf(buf, sizeof buf, "Attempting to replace an existing socket (%d)", sock);
       env.setResultMsg(buf);
       break;
     }

@@ -14,7 +14,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 **********/
 // Copyright (c) 1996-2026, Live Networks, Inc.  All rights reserved
-// A program that converts a H.264 (Elementary Stream) video file into sequence of
+// A program that converts a H.264 (Elementary Stream) video file into a sequence of
 // HLS (HTTP Live Streaming) segments, plus a ".m3u8" file that can be accessed via a web browser.
 // main program
 
@@ -72,8 +72,9 @@ void segmentationCallback(void* /*clientData*/,
 			  char const* segmentFileName, double segmentDuration) {
   if (ourM3U8Fid == NULL) {
     // Open our ".m3u8" file for output, and write the prefix:
-    char* ourM3U8FileName = new char[strlen(OUR_HLS_FILENAME_PREFIX) + 5/*strlen(".m3u8")*/ + 1];
-    sprintf(ourM3U8FileName, "%s.m3u8", OUR_HLS_FILENAME_PREFIX);
+    size_t const ourM3U8FileNameLen = strlen(OUR_HLS_FILENAME_PREFIX) + 5/*strlen(".m3u8")*/ + 1;
+    char* ourM3U8FileName = new char[ourM3U8FileNameLen];
+    snprintf(ourM3U8FileName, ourM3U8FileNameLen, "%s.m3u8", OUR_HLS_FILENAME_PREFIX);
     ourM3U8Fid = fopen(ourM3U8FileName, "wb");
 
     fprintf(ourM3U8Fid,

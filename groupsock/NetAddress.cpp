@@ -475,8 +475,9 @@ AddressString::AddressString(struct sockaddr_storage const& addr) {
       break;
     }
     default: {
-      fVal = new char[200]; // more than enough for this error message
-      sprintf(fVal, "(unknown address family %d)", addr.ss_family);
+      size_t const msgMaxSize = 200; // more than enough for this error message
+      fVal = new char[msgMaxSize]; // more than enough for this error message
+      snprintf(fVal, msgMaxSize, "(unknown address family %d)", addr.ss_family);
       break;
     }
   }

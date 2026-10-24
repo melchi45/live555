@@ -65,18 +65,22 @@ int main(int argc, char const** argv) {
     = MPEG2IFrameIndexFromTransportStream::createNew(*env, input);
 
   // The output file name is the same as the input file name, except with suffix ".tsx":
-  char* outputFileName = new char[len+2]; // allow for trailing x\0
-  sprintf(outputFileName, "%sx", inputFileName);
+  size_t const outputFileNameLen = len+2; // allow for trailing x\0
+  char* outputFileName = new char[outputFileNameLen];
+  snprintf(outputFileName, outputFileNameLen, "%sx", inputFileName);
 
   // Open the output file (for writing), as a 'file sink':
   MediaSink* output = FileSink::createNew(*env, outputFileName);
   if (output == NULL) {
     *env << "Failed to open output file \"" << outputFileName << "\"\n";
+    delete[] outputFileName;
     exit(1);
   }
 
   // Start playing, to generate the output index file:
   *env << "Writing index file \"" << outputFileName << "\"...";
+  delete[] outputFileName;
+
   output->startPlaying(*indexer, afterPlaying, NULL);
 
   env->taskScheduler().doEventLoop(); // does not return

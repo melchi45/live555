@@ -511,7 +511,7 @@ void DummySink::afterGettingFrame(unsigned frameSize, unsigned numTruncatedBytes
   envir() << fSubsession.mediumName() << "/" << fSubsession.codecName() << ":\tReceived " << frameSize << " bytes";
   if (numTruncatedBytes > 0) envir() << " (with " << numTruncatedBytes << " bytes truncated)";
   char uSecsStr[6+1]; // used to output the 'microseconds' part of the presentation time
-  sprintf(uSecsStr, "%06u", (unsigned)presentationTime.tv_usec);
+  snprintf(uSecsStr, sizeof uSecsStr, "%06u", (unsigned)presentationTime.tv_usec);
   envir() << ".\tPresentation time: " << (int)presentationTime.tv_sec << "." << uSecsStr;
   if (fSubsession.rtpSource() != NULL && !fSubsession.rtpSource()->hasBeenSynchronizedUsingRTCP()) {
     envir() << "!"; // mark the debugging output to indicate that this presentation time is not RTCP-synchronized

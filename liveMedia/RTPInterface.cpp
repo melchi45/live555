@@ -288,15 +288,14 @@ Boolean RTPInterface::handleRead(unsigned char* buffer, unsigned bufferMaxSize,
     if (totBytesToRead > bufferMaxSize) totBytesToRead = bufferMaxSize;
     unsigned curBytesToRead = totBytesToRead;
     int curBytesRead;
-    // Because we're calling "readSocket()" on a stream socket, we don't expect "fromAddress"
-    // to be filled in, so set it to a 'dummy' value instead:
-    fromAddress.ss_family = AF_INET;
-    ((sockaddr_in&)fromAddress).sin_addr.s_addr = 0;
-    ((sockaddr_in&)fromAddress).sin_port = 0;
+    // Because we're reading from a stream socket, we don't expect "fromAddress"
+    // to be filled in, so call getpeername() instead to try to get this:
+    SOCKLEN_T namelen = sizeof (struct sockaddr_storage);
+    (void)getpeername(tcpSocketNum, (struct sockaddr*)&fromAddress, &namelen);
     
     while ((curBytesRead = (fNextTCPReadTLSState != NULL && fNextTCPReadTLSState->isNeeded)
 	    ? fNextTCPReadTLSState->read(&buffer[bytesRead], curBytesToRead)
-	    : readSocket(envir(), fNextTCPReadStreamSocketNum,
+	    : readSocket(envir(), tcpSocketNum,
 			 &buffer[bytesRead], curBytesToRead,
 			 fromAddress)) > 0) {
       bytesRead += curBytesRead;

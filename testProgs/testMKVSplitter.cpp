@@ -80,8 +80,9 @@ void onMatroskaFileCreation(MatroskaFile* matroskaFile, void* /*clientData*/) {
 
     // Create the file name from "mimeType" by replacing "/" with "-", and adding the
     // track number at the end:
-    char* fileName = new char[strlen(mimeType) + 100/*more than enough space*/];
-    sprintf(fileName, "%s-%d", mimeType, trackNumber);
+    size_t const fileNameLen = strlen(mimeType) + 100/*more than enough space*/;
+    char* fileName = new char[fileNameLen];
+    snprintf(fileName, fileNameLen, "%s-%d", mimeType, trackNumber);
     for (unsigned j = 0; fileName[j] != '\0'; ++j) {
       if (fileName[j] == '/') {
 	fileName[j] = '-';
@@ -95,6 +96,7 @@ void onMatroskaFileCreation(MatroskaFile* matroskaFile, void* /*clientData*/) {
       ++numActiveTracks;
       fprintf(stderr, "Created output file \"%s\" for track %d\n", fileName, trackNumber);
     }
+    delete[] fileName;
   }
 
   if (numActiveTracks == 0) {
