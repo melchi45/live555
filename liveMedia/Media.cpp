@@ -153,10 +153,8 @@ void MediaLookupTable::remove(char const* name) {
   }
 }
 
-void MediaLookupTable::generateNewName(char* mediumName,
-				       unsigned /*maxLen*/) {
-  // We should really use snprintf() here, but not all systems have it
-  sprintf(mediumName, "liveMedia%d", fNameGenerator++);
+void MediaLookupTable::generateNewName(char* mediumName, unsigned maxLen) {
+  snprintf(mediumName, maxLen, "liveMedia%d", fNameGenerator++);
 }
 
 MediaLookupTable::MediaLookupTable(UsageEnvironment& env)

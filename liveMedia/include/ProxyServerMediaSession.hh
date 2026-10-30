@@ -19,6 +19,10 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 // another (unicast or multicast) RTSP/RTP stream.
 // C++ header
 
+// REMINDER: You should not make major changes to this code.
+// If you want more features, then you should use subclassing, with separate source code files.
+// See: http://live555.com/liveMedia/faq.html#modifying-and-extending
+
 #ifndef _PROXY_SERVER_MEDIA_SESSION_HH
 #define _PROXY_SERVER_MEDIA_SESSION_HH
 

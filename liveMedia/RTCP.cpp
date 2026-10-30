@@ -116,8 +116,9 @@ static double dTimeNow() {
     return (double) (timeNow.tv_sec + timeNow.tv_usec/1000000.0);
 }
 
-static unsigned const maxRTCPPacketSize = 1438;
-	// bytes (1500, minus some allowance for IP, UDP headers; SRTCP trailers)
+static unsigned const maxRTCPPacketSize = 65536;
+	// allow for unusually large RTCP packets, especially when received over TCP
+        // (in which case there's no preceding IP and UDP headers)
 static unsigned const preferredRTCPPacketSize = 1000; // bytes
 
 RTCPInstance::RTCPInstance(UsageEnvironment& env, Groupsock* RTCPgs,

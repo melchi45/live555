@@ -462,7 +462,7 @@ void segmentationCallback(void* /*clientData*/,
 
   // Then, rewrite our ".m3u8" file with the new list of segments:
   if (ourM3U8FileName == NULL) {
-    size_t fileNameSize = strlen(hlsPrefix) + 5/*strlen(".m3u8")*/ + 1;
+    size_t const fileNameSize = strlen(hlsPrefix) + 5/*strlen(".m3u8")*/ + 1;
     ourM3U8FileName = new char[fileNameSize];
     if (ourM3U8FileName == NULL) exit(1);
     snprintf(ourM3U8FileName, fileNameSize, "%s.m3u8", hlsPrefix);

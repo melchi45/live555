@@ -248,12 +248,12 @@ void Groupsock::removeAllDestinations() {
 }
 
 void Groupsock::multicastSendOnly() {
-  // We disable this code for now, because - on some systems - leaving the multicast group seems to cause sent packets
-  // to not be received by other applications (at least, on the same host).
+  // We disable this code for now, because - on some systems - leaving the multicast group seems
+  // to cause sent packets to not be received by other applications (at least, on the same host).
 #if 0
-  socketLeaveGroup(env(), socketNum(), groupAddress(r);
+  socketLeaveGroup(env(), socketNum(), groupAddress());
   for (destRecord* dests = fDests; dests != NULL; dests = dests->fNext) {
-    socketLeaveGroup(env(), socketNum(), dests->fGroupEId.groupAddress(r);
+    socketLeaveGroup(env(), socketNum(), dests->fGroupEId.groupAddress());
   }
 #endif
 }
