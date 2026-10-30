@@ -17,6 +17,11 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 // Basic Usage Environment: for a simple, non-scripted, console application
 // Implementation
 
+// REMINDER: You should not make major changes to this code.  This code is intended to
+// implement just a basic, simple "UsageEnvironment".  If you want a more complex implementation,
+// then you should use subclassing, with separate source code files.
+// See: http://live555.com/liveMedia/faq.html#modifying-and-extending
+
 #include "BasicUsageEnvironment.hh"
 #include <stdio.h>
 

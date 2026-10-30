@@ -74,8 +74,9 @@ char* RTPSink::rtpmapLine() const {
   if (rtpPayloadType() >= 96) { // the payload format type is dynamic
     char* encodingParamsPart;
     if (numChannels() != 1) {
-      encodingParamsPart = new char[1 + 20 /* max int len */];
-      sprintf(encodingParamsPart, "/%d", numChannels());
+      size_t const encodingParamsPartSize = 1 + 20 /* max int len */;
+      encodingParamsPart = new char[encodingParamsPartSize];
+      snprintf(encodingParamsPart, encodingParamsPartSize, "/%d", numChannels());
     } else {
       encodingParamsPart = strDup("");
     }
@@ -84,9 +85,9 @@ char* RTPSink::rtpmapLine() const {
       + 3 /* max char len */ + strlen(rtpPayloadFormatName())
       + 20 /* max int len */ + strlen(encodingParamsPart);
     char* rtpmapLine = new char[rtpmapLineSize];
-    sprintf(rtpmapLine, rtpmapFmt,
-	    rtpPayloadType(), rtpPayloadFormatName(),
-	    rtpTimestampFrequency(), encodingParamsPart);
+    snprintf(rtpmapLine, rtpmapLineSize, rtpmapFmt,
+	     rtpPayloadType(), rtpPayloadFormatName(),
+	     rtpTimestampFrequency(), encodingParamsPart);
     delete[] encodingParamsPart;
 
     return rtpmapLine;
@@ -107,7 +108,7 @@ char* RTPSink::keyMgmtLine() {
     
     unsigned keyMgmtLineSize = strlen(keyMgmtFmt) + strlen(base64EncodedData);
     char* keyMgmtLine = new char[keyMgmtLineSize];
-    sprintf(keyMgmtLine, keyMgmtFmt, base64EncodedData);
+    snprintf(keyMgmtLine, keyMgmtLineSize, keyMgmtFmt, base64EncodedData);
     delete[] base64EncodedData;
 
     return keyMgmtLine;

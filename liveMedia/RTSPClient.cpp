@@ -128,8 +128,9 @@ unsigned RTSPClient::sendSetParameterCommand(MediaSession& session, responseHand
                                              char const* parameterName, char const* parameterValue,
                                              Authenticator* authenticator) {
   if (fCurrentAuthenticator < authenticator) fCurrentAuthenticator = *authenticator;
-  char* paramString = new char[strlen(parameterName) + strlen(parameterValue) + 10];
-  sprintf(paramString, "%s: %s\r\n", parameterName, parameterValue);
+  size_t const paramStringSize = strlen(parameterName) + strlen(parameterValue) + 10;
+  char* paramString = new char[paramStringSize];
+  snprintf(paramString, paramStringSize, "%s: %s\r\n", parameterName, parameterValue);
   unsigned result = sendRequest(new RequestRecord(++fCSeq, "SET_PARAMETER", responseHandler, &session, NULL, False, 0.0, 0.0, 0.0, paramString));
   delete[] paramString;
   return result;
@@ -143,11 +144,12 @@ unsigned RTSPClient::sendGetParameterCommand(MediaSession& session, responseHand
   //    parameterName is NULL or "" means: Send no body in the request.
   //    parameterName is non-empty means: Send "<parameterName>\r\n" as the request body.  
   unsigned parameterNameLen = parameterName == NULL ? 0 : strlen(parameterName);
-  char* paramString = new char[parameterNameLen + 3]; // the 3 is for \r\n + the '\0' byte
+  size_t const paramStringSize = parameterNameLen + 3; // the 3 is for \r\n + the '\0' byte
+  char* paramString = new char[paramStringSize];
   if (parameterName == NULL || parameterName[0] == '\0') {
     paramString[0] = '\0';
   } else {
-    sprintf(paramString, "%s\r\n", parameterName);
+    snprintf(paramString, paramStringSize, "%s\r\n", parameterName);
   }
   unsigned result = sendRequest(new RequestRecord(++fCSeq, "GET_PARAMETER", responseHandler, &session, NULL, False, 0.0, 0.0, 0.0, paramString));
   delete[] paramString;
@@ -384,7 +386,7 @@ void RTSPClient::setUserAgentString(char const* userAgentName) {
   unsigned const headerSize = strlen(formatStr) + strlen(userAgentName);
   delete[] fUserAgentHeaderStr;
   fUserAgentHeaderStr = new char[headerSize];
-  sprintf(fUserAgentHeaderStr, formatStr, userAgentName);
+  snprintf(fUserAgentHeaderStr, headerSize, formatStr, userAgentName);
   fUserAgentHeaderStrLen = strlen(fUserAgentHeaderStr);
 }
 
@@ -429,7 +431,7 @@ RTSPClient::RTSPClient(UsageEnvironment& env, char const* rtspURL,
   unsigned userAgentNameSize
     = strlen(applicationName) + strlen(libPrefix) + strlen(libName) + strlen(liveMediaLibraryVersionStr) + strlen(libSuffix) + 1;
   char* userAgentName = new char[userAgentNameSize];
-  sprintf(userAgentName, "%s%s%s%s%s", applicationName, libPrefix, libName, liveMediaLibraryVersionStr, libSuffix);
+  snprintf(userAgentName, userAgentNameSize, "%s%s%s%s%s", applicationName, libPrefix, libName, liveMediaLibraryVersionStr, libSuffix);
   setUserAgentString(userAgentName);
   delete[] userAgentName;
 }
@@ -450,6 +452,7 @@ void RTSPClient::reset() {
   fRequestsAwaitingResponse.reset();
 
   setBaseURL(NULL);
+  fTCPStreamIdCount = 0;
 
   fCurrentAuthenticator.reset();
 
@@ -526,7 +529,7 @@ unsigned RTSPClient::sendRequest(RequestRecord* request) {
       unsigned contentLengthHeaderSize = strlen(contentLengthHeaderFmt)
 	+ 20 /* max int len */;
       contentLengthHeader = new char[contentLengthHeaderSize];
-      sprintf(contentLengthHeader, contentLengthHeaderFmt, contentStrLen);
+      snprintf(contentLengthHeader, contentLengthHeaderSize, contentLengthHeaderFmt, contentStrLen);
       contentLengthHeaderWasAllocated = True;
     }
 
@@ -552,15 +555,15 @@ unsigned RTSPClient::sendRequest(RequestRecord* request) {
       + strlen(contentLengthHeader)
       + contentStrLen;
     cmd = new char[cmdSize];
-    sprintf(cmd, cmdFmt,
-	    request->commandName(), cmdURL, protocolStr,
-	    request->cseq(),
-	    authenticatorStr,
-	    fUserAgentHeaderStr,
-	    fRequireStr,
-            extraHeaders,
-	    contentLengthHeader,
-	    contentStr);
+    snprintf(cmd, cmdSize, cmdFmt,
+	     request->commandName(), cmdURL, protocolStr,
+	     request->cseq(),
+	     authenticatorStr,
+	     fUserAgentHeaderStr,
+	     fRequireStr,
+	     extraHeaders,
+	     contentLengthHeader,
+	     contentStr);
     delete[] authenticatorStr;
     if (cmdURLWasAllocated) delete[] cmdURL;
     if (extraHeadersWereAllocated) delete[] extraHeaders;
@@ -581,7 +584,7 @@ unsigned RTSPClient::sendRequest(RequestRecord* request) {
       char const* errFmt = "%s write() failed: ";
       unsigned const errLength = strlen(errFmt) + strlen(request->commandName());
       char* err = new char[errLength];
-      sprintf(err, errFmt, request->commandName());
+      snprintf(err, errLength, errFmt, request->commandName());
       envir().setResultErrMsg(err);
       delete[] err;
       break;
@@ -611,8 +614,9 @@ unsigned RTSPClient::sendRequest(RequestRecord* request) {
 static char* createSessionString(char const* sessionId) {
   char* sessionStr;
   if (sessionId != NULL) {
-    sessionStr = new char[20+strlen(sessionId)];
-    sprintf(sessionStr, "Session: %s\r\n", sessionId);
+    size_t const sessionStrSize = 20 + strlen(sessionId);
+    sessionStr = new char[sessionStrSize];
+    snprintf(sessionStr, sessionStrSize, "Session: %s\r\n", sessionId);
   } else {
     sessionStr = strDup("");
   }
@@ -626,7 +630,7 @@ static char* createSpeedString(float speed) {
     // This is the default value; we don't need a "Speed:" header:
     buf[0] = '\0';
   } else {
-    sprintf(buf, "Speed: %.3f\r\n",speed);
+    snprintf(buf, sizeof buf, "Speed: %.3f\r\n", speed);
   }
 
   return strDup(buf);
@@ -639,7 +643,7 @@ static char* createScaleString(float scale, float currentScale) {
     buf[0] = '\0';
   } else {
     Locale l("C", Numeric);
-    sprintf(buf, "Scale: %f\r\n", scale);
+    snprintf(buf, sizeof buf, "Scale: %f\r\n", scale);
   }
 
   return strDup(buf);
@@ -667,11 +671,11 @@ static char* createRangeString(double start, double end, char const* absStartTim
     } else if (end < 0) {
       // There's no end time:
       Locale l("C", Numeric);
-      sprintf(buf, "Range: npt=%.3f-\r\n", start);
+      snprintf(buf, sizeof buf, "Range: npt=%.3f-\r\n", start);
     } else {
       // There's both a start and an end time; include them both in the "Range:" hdr
       Locale l("C", Numeric);
-      sprintf(buf, "Range: npt=%.3f-%.3f\r\n", start, end);
+      snprintf(buf, sizeof buf, "Range: npt=%.3f-%.3f\r\n", start, end);
     }
   }
 
@@ -713,9 +717,10 @@ Boolean RTSPClient::setRequestFields(RequestRecord* request,
       transportFmt = "Transport: RAW/RAW/UDP%s%s%s=%d-%d\r\n";
     }
     
-    cmdURL = new char[strlen(prefix) + strlen(separator) + strlen(suffix) + 1];
+    size_t const cmdURLSize = strlen(prefix) + strlen(separator) + strlen(suffix) + 1;
+    cmdURL = new char[cmdURLSize];
     cmdURLWasAllocated = True;
-    sprintf(cmdURL, "%s%s%s", prefix, separator, suffix);
+    snprintf(cmdURL, cmdURLSize, "%s%s%s", prefix, separator, suffix);
     
     // Construct a "Transport:" header.
     char const* transportTypeStr;
@@ -747,8 +752,8 @@ Boolean RTSPClient::setRequestFields(RequestRecord* request,
     unsigned transportSize = strlen(transportFmt)
       + strlen(transportTypeStr) + strlen(modeStr) + strlen(portTypeStr) + 2*5 /* max port len */;
     char* transportStr = new char[transportSize];
-    sprintf(transportStr, transportFmt,
-	    transportTypeStr, modeStr, portTypeStr, rtpNumber, rtcpNumber);
+    snprintf(transportStr, transportSize, transportFmt,
+	     transportTypeStr, modeStr, portTypeStr, rtpNumber, rtcpNumber);
     
     // When sending more than one "SETUP" request, include a "Session:" header in the 2nd and later commands:
     char* sessionStr = createSessionString(fLastSessionId);
@@ -761,9 +766,11 @@ Boolean RTSPClient::setRequestFields(RequestRecord* request,
 
     // The "Transport:", "Session:" (if present), "Blocksize:" (if present), and "KeyMgmt:" (if present)
     // headers make up the 'extra headers':
-    extraHeaders = new char[transportSize + strlen(sessionStr) + strlen(blocksizeStr) + strlen(keyMgmtStr) + 1];
+    size_t const extraHeadersSize
+      = transportSize + strlen(sessionStr) + strlen(blocksizeStr) + strlen(keyMgmtStr) + 1;
+    extraHeaders = new char[extraHeadersSize];
     extraHeadersWereAllocated = True;
-    sprintf(extraHeaders, "%s%s%s%s", transportStr, sessionStr, blocksizeStr, keyMgmtStr);
+    snprintf(extraHeaders, extraHeadersSize, "%s%s%s%s", transportStr, sessionStr, blocksizeStr, keyMgmtStr);
     delete[] transportStr; delete[] sessionStr; delete[] blocksizeStr; delete[] keyMgmtStr;
   } else if (strcmp(request->commandName(), "GET") == 0 || strcmp(request->commandName(), "POST") == 0) {
     // We will be sending a HTTP (not a RTSP) request.
@@ -807,9 +814,9 @@ Boolean RTSPClient::setRequestFields(RequestRecord* request,
 	+ strlen(fSessionCookie);
       extraHeaders = new char[extraHeadersSize];
       extraHeadersWereAllocated = True;
-      sprintf(extraHeaders, extraHeadersFmt,
-	      serverAddressString.val(),
-	      fSessionCookie);
+      snprintf(extraHeaders, extraHeadersSize, extraHeadersFmt,
+	       serverAddressString.val(),
+	       fSessionCookie);
     } else { // "POST"
       char const* const extraHeadersFmt =
 	"Host: %s\r\n"
@@ -824,9 +831,9 @@ Boolean RTSPClient::setRequestFields(RequestRecord* request,
 	+ strlen(fSessionCookie);
       extraHeaders = new char[extraHeadersSize];
       extraHeadersWereAllocated = True;
-      sprintf(extraHeaders, extraHeadersFmt,
-	      serverAddressString.val(),
-	      fSessionCookie);
+      snprintf(extraHeaders, extraHeadersSize, extraHeadersFmt,
+	       serverAddressString.val(),
+	       fSessionCookie);
     }
   } else { // "PLAY", "PAUSE", "TEARDOWN", "RECORD", "SET_PARAMETER", "GET_PARAMETER"
     // First, make sure that we have a RTSP session in progress
@@ -847,9 +854,10 @@ Boolean RTSPClient::setRequestFields(RequestRecord* request,
       // Media-level operation
       char const *prefix, *separator, *suffix;
       constructSubsessionURL(*request->subsession(), prefix, separator, suffix);
-      cmdURL = new char[strlen(prefix) + strlen(separator) + strlen(suffix) + 1];
+      size_t const cmdURLSize = strlen(prefix) + strlen(separator) + strlen(suffix) + 1;
+      cmdURL = new char[cmdURLSize];
       cmdURLWasAllocated = True;
-      sprintf(cmdURL, "%s%s%s", prefix, separator, suffix);
+      snprintf(cmdURL, cmdURLSize, "%s%s%s", prefix, separator, suffix);
       
       sessionId = request->subsession()->sessionId();
       originalScale = request->subsession()->scale();
@@ -863,9 +871,11 @@ Boolean RTSPClient::setRequestFields(RequestRecord* request,
       float speed = request->session() != NULL ? request->session()->speed() : request->subsession()->speed();
       char* speedStr = createSpeedString(speed);
       char* rangeStr = createRangeString(request->start(), request->end(), request->absStartTime(), request->absEndTime());
-      extraHeaders = new char[strlen(sessionStr) + strlen(scaleStr) + strlen(speedStr) + strlen(rangeStr) + 1];
+      size_t const extraHeadersSize =
+	strlen(sessionStr) + strlen(scaleStr) + strlen(speedStr) + strlen(rangeStr) + 1;
+      extraHeaders = new char[extraHeadersSize];
       extraHeadersWereAllocated = True;
-      sprintf(extraHeaders, "%s%s%s%s", sessionStr, scaleStr, speedStr, rangeStr);
+      snprintf(extraHeaders, extraHeadersSize, "%s%s%s%s", sessionStr, scaleStr, speedStr, rangeStr);
       delete[] sessionStr; delete[] scaleStr; delete[] speedStr; delete[] rangeStr;
     } else {
       // Create a "Session:" header; this makes up our 'extra headers':
@@ -987,21 +997,21 @@ char* RTSPClient::createAuthenticatorString(char const* cmd, char const* url) {
 	+ strlen(auth.username()) + strlen(auth.realm())
 	+ strlen(auth.nonce()) + strlen(url) + strlen(response);
       authenticatorStr = new char[authBufSize];
-      sprintf(authenticatorStr, authFmt,
-	      auth.username(), auth.realm(),
-	      auth.nonce(), url, response);
+      snprintf(authenticatorStr, authBufSize, authFmt,
+	       auth.username(), auth.realm(),
+	       auth.nonce(), url, response);
       auth.reclaimDigestResponse(response);
     } else { // Basic authentication
       char const* const authFmt = "Authorization: Basic %s\r\n";
 
       unsigned usernamePasswordLength = strlen(auth.username()) + 1 + strlen(auth.password());
       char* usernamePassword = new char[usernamePasswordLength+1];
-      sprintf(usernamePassword, "%s:%s", auth.username(), auth.password());
+      snprintf(usernamePassword, usernamePasswordLength+1, "%s:%s", auth.username(), auth.password());
 
       char* response = base64Encode(usernamePassword, usernamePasswordLength);
       unsigned const authBufSize = strlen(authFmt) + strlen(response) + 1;
       authenticatorStr = new char[authBufSize];
-      sprintf(authenticatorStr, authFmt, response);
+      snprintf(authenticatorStr, authBufSize, authFmt, response);
       delete[] response; delete[] usernamePassword;
     }
 
@@ -1026,8 +1036,9 @@ char* RTSPClient::createBlocksizeString(Boolean streamUsingTCP) {
   }
 
   if (maxPacketSize > 0) {
-    blocksizeStr = new char[25]; // more than enough space
-    sprintf(blocksizeStr, "Blocksize: %u\r\n", maxPacketSize);
+    size_t const blocksizeStrSize = 25; // more than enough space
+    blocksizeStr = new char[blocksizeStrSize];
+    snprintf(blocksizeStr, blocksizeStrSize, "Blocksize: %u\r\n", maxPacketSize);
   } else {
     blocksizeStr = strDup("");
   }
@@ -1050,7 +1061,7 @@ char* RTSPClient::createKeyMgmtString(char const* url, MediaSubsession const& su
     
     unsigned keyMgmtSize = strlen(keyMgmtFmt) + strlen(url) + strlen(base64EncodedData);
     keyMgmtStr = new char[keyMgmtSize];
-    sprintf(keyMgmtStr, keyMgmtFmt,
+    snprintf(keyMgmtStr, keyMgmtSize, keyMgmtFmt,
 	    url, base64EncodedData);
     delete[] base64EncodedData;
   }
@@ -1880,7 +1891,7 @@ void RTSPClient::handleResponseBytes(int newBytesRead) {
 	      = (oldBaseURLTail - fBaseURL) + 8/* for "/stream=" */ + strlen(headerParamsStr);
 	    char* newBaseURL = new char[newBaseURLLen + 1];
 	        // Note: We couldn't use "asprintf()", because some compilers don't support it
-	    sprintf(newBaseURL, "%.*s/stream=%s",
+	    snprintf(newBaseURL, newBaseURLLen + 1, "%.*s/stream=%s",
 		     (int)(oldBaseURLTail - fBaseURL), fBaseURL, headerParamsStr);
 	    setBaseURL(newBaseURL);
 	    delete[] newBaseURL;
@@ -1908,8 +1919,8 @@ void RTSPClient::handleResponseBytes(int newBytesRead) {
 	unsigned remainingBufferSize = responseBufferSize - fResponseBytesAlreadySeen;
 	if (numExtraBytesNeeded > remainingBufferSize) {
 	  char tmpBuf[200];
-	  sprintf(tmpBuf, "Response buffer size (%d) is too small for \"Content-Length:\" %d (need a buffer size of >= %d bytes\n",
-		  responseBufferSize, contentLength, fResponseBytesAlreadySeen + numExtraBytesNeeded);
+	  snprintf(tmpBuf, sizeof tmpBuf, "Response buffer size (%d) is too small for \"Content-Length:\" %d (need a buffer size of >= %d bytes\n",
+		   responseBufferSize, contentLength, fResponseBytesAlreadySeen + numExtraBytesNeeded);
 	  envir().setResultMsg(tmpBuf);
 	  break;
 	}

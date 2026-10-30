@@ -142,7 +142,7 @@ void OnDemandServerMediaSubsession
     streamToken = fLastStreamToken;
   } else {
     // Normal case: Create a new media source:
-    unsigned streamBitrate;
+    unsigned streamBitrate = 0;
     FramedSource* mediaSource
       = createNewStreamSource(clientSessionId, streamBitrate);
 
