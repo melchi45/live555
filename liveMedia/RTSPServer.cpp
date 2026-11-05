@@ -1363,7 +1363,8 @@ static Boolean parseTransportHeader(char const* buf,
       if (streamingMode != UNKNOWN) break; // more than one 'streaming mode' is not allowed
 
       streamingMode = RTP_TCP;
-    } else if (strcmp(field, "RTP/AVP") == 0 || strcmp(field, "RTP/SAVP") == 0) {
+    } else if (strcmp(field, "RTP/AVP") == 0 || strcmp(field, "RTP/AVP/UDP") == 0
+	       || strcmp(field, "RTP/SAVP") == 0) {
       if (streamingMode != UNKNOWN) break; // more than one 'streaming mode' is not allowed
 
       streamingMode = RTP_UDP;

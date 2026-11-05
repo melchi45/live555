@@ -1450,9 +1450,11 @@ Boolean RTSPClient::handleAuthenticationFailure(char const* paramsStr) {
     realmHasChanged = fCurrentAuthenticator.realm() == NULL || strcmp(fCurrentAuthenticator.realm(), realm) != 0;
     isStale = _strncasecmp(stale, "true", 4) == 0;
     fCurrentAuthenticator.setRealmAndNonce(realm, nonce);
+    disallowBasicAuthentication(); // any future authentication request must be Digest
   } else if (sscanf(paramsStr, "Digest realm=\"%[^\"]\", nonce=\"%[^\"]\"", realm, nonce) == 2) {
     realmHasChanged = fCurrentAuthenticator.realm() == NULL || strcmp(fCurrentAuthenticator.realm(), realm) != 0;
     fCurrentAuthenticator.setRealmAndNonce(realm, nonce);
+    disallowBasicAuthentication(); // any future authentication request must be Digest
   } else if (sscanf(paramsStr, "Basic realm=\"%[^\"]\"", realm) == 1 && fAllowBasicAuthentication) {
     realmHasChanged = fCurrentAuthenticator.realm() == NULL || strcmp(fCurrentAuthenticator.realm(), realm) != 0;
     fCurrentAuthenticator.setRealmAndNonce(realm, NULL); // Basic authentication
@@ -1974,7 +1976,6 @@ void RTSPClient::handleResponseBytes(int newBytesRead) {
 	  }
 	} else if (responseCode == 301 || responseCode == 302) { // redirection
 	  resetTCPSockets(); // because we need to connect somewhere else next
-	  fCurrentAuthenticator.reset();
 	  needToResendCommand = True;
 	}
 	
