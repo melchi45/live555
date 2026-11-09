@@ -181,6 +181,13 @@ void MultiFramedRTPSource::doGetNextFrame1() {
 		    fCurPacketRTPSeqNum, fCurPacketRTPTimestamp,
 		    fPresentationTime, fCurPacketHasBeenSynchronizedUsingRTCP,
 		    fCurPacketMarkerBit);
+    if (frameSize == 0) {
+      // A "frameSize" of zero means that no data was delivered, perhaps due to a malformed
+      // header.  Reject the rest of the packet, so that we continue to make progress:
+      fReorderingBuffer->releaseUsedPacket(nextPacket);
+      fNeedDelivery = True;
+      continue;
+    }
     fFrameSize += frameSize;
 
     if (!nextPacket->hasUsableData()) {
@@ -188,7 +195,7 @@ void MultiFramedRTPSource::doGetNextFrame1() {
       fReorderingBuffer->releaseUsedPacket(nextPacket);
     }
 
-    if (fCurrentPacketCompletesFrame && fFrameSize > 0) {
+    if (fCurrentPacketCompletesFrame) {
       // We have all the data that the client wants.
       if (fNumTruncatedBytes > 0) {
 	envir() << "MultiFramedRTPSource::doGetNextFrame1(): The total received frame size exceeds the client's buffer size ("
